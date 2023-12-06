@@ -81,15 +81,57 @@ def leer_fichero_de_entrada(file: str) -> tuple:
     return dominio, vehiculos
 
 def restriccion_1(): ...
-def restriccion_2(v1, v2): 
-    if v1 != v2:
+
+def restriccion_2(p1, p2): 
+    if p1 != p2:
         return True
     else:
         return False
-def restriccion_3(): ...
-def restriccion_4(): ...
+    
+def restriccion_3(p1): 
+    if p1[2] == True:
+        return True
+    else:
+        return False
+
+def restriccion_4(p1, p2): 
+    if p2[1] < p1[1]:
+        return True
+    else:
+        return False
+    
 def restriccion_5(): ...
 
+
+#BORRAR ANTES DE ENTREGAR
+###############################################################################################################################
+def imprimir_estacionamiento(solucion):
+    # Definir las dimensiones totales del estacionamiento
+    filas_totales = 5  # Cambiar según las filas totales de tu estacionamiento
+    columnas_totales = 6  # Cambiar según las columnas totales de tu estacionamiento
+
+    # Crear una matriz para representar el estacionamiento
+    estacionamiento = [['    -   ' for _ in range(columnas_totales)] for _ in range(filas_totales)]
+
+    # Llenar la matriz con la información de la solución
+    for vehiculo, ubicacion in solucion.items():
+        id_coche, tipo, congelador = vehiculo
+        i, j, e = ubicacion
+        estacionamiento[i - 1][j - 1] = f"{id_coche}({tipo}{'-C' if congelador else '-X'})"
+
+    # Imprimir los índices de las columnas
+    print("  ", end="")
+    for idx in range(1, columnas_totales + 1):
+        print(f"{idx: ^5}", end="")
+    print("\n")
+
+    # Imprimir el estacionamiento con los índices de las filas
+    for i, fila in enumerate(estacionamiento, start=1):
+        print(f"{i: <2}", end="")
+        for celda in fila:
+            print(f"| {celda: ^4}", end="")
+        print("|")
+###############################################################################################################################
 
 if __name__ == "__main__":
     dominio, vehiculos = leer_fichero_de_entrada("src/parte-1/ejemplo.txt")
@@ -98,10 +140,25 @@ if __name__ == "__main__":
 
     problema.addVariables(vehiculos, dominio)
 
+    # Segunda restricción
     for v1 in vehiculos:
         for v2 in vehiculos:
             if v1 != v2:
                 problema.addConstraint(restriccion_2, (v1, v2))
+    
+    # Tercera restricción
+    """for v in vehiculos:
+        if v[2] == True:
+            problema.addConstraint(restriccion_3, (v))"""
+
+    # cuarta restricción
+    for v1 in vehiculos:
+        if v1[1] == 'TSU':
+            for v2 in vehiculos:
+                if v2[1] == 'TNU': 
+                    problema.addConstraint(restriccion_4, (v1, v2))
+    
+
 
     a = problema.getSolution()
-    print(a)
+    imprimir_estacionamiento(a)
