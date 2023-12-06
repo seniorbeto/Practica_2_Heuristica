@@ -124,6 +124,9 @@ def restriccion_5(p1, p2, p3):
 #BORRAR ANTES DE ENTREGAR
 ###############################################################################################################################
 def imprimir_estacionamiento(solucion):
+    if solucion is None:
+        print("EL PROBLEMA NO TIENE SOLUCIÓN")
+        return
     # Definir las dimensiones totales del estacionamiento
     filas_totales = 5  # Cambiar según las filas totales de tu estacionamiento
     columnas_totales = 6  # Cambiar según las columnas totales de tu estacionamiento
