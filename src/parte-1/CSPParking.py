@@ -93,26 +93,29 @@ def restriccion_2(p1, p2):
 def restriccion_3(p1): ...
 
 def restriccion_4(p1, p2): 
-    if p2[1] < p1[1]:
-        return True
+    if p1[0] == p2[0]:
+        if p2[1] < p1[1]:
+            return True
+        else:
+            return False
     else:
-        return False
+        return True
     
 def restriccion_5(p1, p2, p3):
     # Para cuando veas esto, Natalia: 
     # Siento mucho no haber comentado nada es que estoy muy cansado pero motivado al mismo tiempo 
     # porque está saliendo todo bastante bien 
-    if p1[0] == 1 or p1[0] == 5: # Si está en una de las filas de los extremos...
-        if (p2[0] - p1[0] == 1) or (p3[0] - p1[0] == -1):
+    if p1[0] == 1 or p1[0] == 5:
+        if (p2[0] - p1[0] == 1 and p2[1] == p1[1]) or (p3[0] - p1[0] == -1 and p3[1] == p1[1]):
             return False
-        elif (p2[0] - p1[0] == -1) or (p3[0] - p1[0] == 1):
+        elif (p2[0] - p1[0] == -1 and p2[1] == p1[1]) or (p3[0] - p1[0] == 1 and p3[1] == p1[1]):
             return False
         else:
             return True
-    else: 
-        if (p2[0] - p1[0] == 1) and (p3[0] - p1[0] == -1):
+    else:
+        if (p2[0] - p1[0] == 1 and p2[1] == p1[1]) and (p3[0] - p1[0] == -1 and p3[1] == p1[1]):
             return False
-        elif (p2[0] - p1[0] == -1) and (p3[0] - p1[0] == 1):
+        elif (p2[0] - p1[0] == -1 and p2[1] == p1[1]) and (p3[0] - p1[0] == 1 and p3[1] == p1[1]):
             return False
         else:
             return True
@@ -150,9 +153,6 @@ def imprimir_estacionamiento(solucion):
 
 if __name__ == "__main__":
     dom_enchufables, dominio, vehiculos = leer_fichero_de_entrada("src/parte-1/ejemplo.txt")
-    print(dom_enchufables)
-    print()
-    print(dominio)
 
     problema = Problem()
 
@@ -176,11 +176,11 @@ if __name__ == "__main__":
                     problema.addConstraint(restriccion_4, (v1, v2))
     
     # Quinta restricción
-    """for v1 in vehiculos:
+    for v1 in vehiculos:
         for v2 in vehiculos:
             for v3 in vehiculos:
                 if (v1 != v2) and (v1 != v3) and (v2 != v3):
-                    problema.addConstraint(restriccion_5, (v1, v2, v3))"""
+                    problema.addConstraint(restriccion_5, (v1, v2, v3))
     
 
 
