@@ -9,16 +9,23 @@
 import os
 import csv
 import sys
+from random import choice
 from constraint import *
 
 
 class Parte1:
 
     def __init__(self, fichero) -> None:
+        """
+        Se inicializa el problema mediante el fichero de entrada y se soluciona devolviendo en un .csv con el
+        mismo nombre que la entrada y en el mismo directorio el resultado de salida. O bien, se devuelven los
+        errores correspondientes. Si el problema no tiene solución, por la salida éstandar se lee en amarillo
+        "EL PROBLEMA NO TIENE SOLUCIÓN" y en el .csv se escribe únicamente "N. Sol:",0.
+        """
 
         self.filas = None
         self.columnas = None
-        self.csv = None
+        self.ruta_csv = None
 
         # Del fichero de entrada establecemos las variables vehículo (id, tipo, congelador),
         # su dominio, que son las plazas de parking (i, j, e) y el dominio que tendrá un 
@@ -55,10 +62,10 @@ class Parte1:
         
 
 
-        primera_sol = self.problema.getSolution()
+        sols = self.problema.getSolutions()
         
-        #self.agregar_solucion_a_csv(a)
-        self.imprimir_estacionamiento(primera_sol)
+        self.generar_csv(sols)
+        #self.imprimir_estacionamiento(primera_sol)
 
 
 
@@ -83,15 +90,16 @@ class Parte1:
             2. Una lista con los vehículos (variables principales) del problema 
         """
 
-        with open(file, mode="r") as f:
-            fichero = f.read()
+        try:
+            with open(file, mode="r") as f:
+                fichero = f.read()
+        except:
+            raise ValueError("\n"+'\033[91m'+"Es necesario especificar una ruta válida como argumento" + '\033[0m')
 
-        # Obtenemos nombre del archivo de entrada para definir el nombre
-        # del archivo de salida (tiene que ser el mismo)
-        partes_ruta = file.split(os.path.sep)
-        nombre_archivo_con_extension = partes_ruta[-1]
-        nombre_archivo_sin_extension = nombre_archivo_con_extension.split('.')[0]
-        self.csv = nombre_archivo_sin_extension
+        # Obtenemos la ruta del archivo de entrada para definir el nombre
+        # del archivo de salida y su ruta (tiene que ser el mismo)
+        self.ruta_csv = file[:-3]
+        self.ruta_csv += 'csv'
         
         i = 0
         m = ''
@@ -100,8 +108,8 @@ class Parte1:
             # Si el número de filas no es un entero, error
             try:
                 int(fichero[i])  
-            except TypeError:
-                raise ValueError("El número de filas del parking debe ser un entero.")
+            except ValueError:
+                raise ValueError("\n"+'\033[91m'+"El número de filas del parking debe ser un entero." + '\033[0m')
             
             m += fichero[i]
             i += 1
@@ -116,7 +124,7 @@ class Parte1:
             try:
                 int(fichero[i])  
             except ValueError:
-                raise ValueError("El número de columnas del parking debe ser un entero.")
+                raise ValueError("\n"+'\033[91m'+"El número de columnas del parking debe ser un entero." + '\033[0m')
             n += fichero[i]
             i += 1
         i += 1
@@ -128,8 +136,8 @@ class Parte1:
         # Comprobamos el formato de declaración de plazas eléctricas
         comprobacion_def_pe = fichero[:3]
         if comprobacion_def_pe != 'PE:':
-            raise ValueError("Las plazas eléctricas han de estar especificadas con el siguiente\n \
-                              formato: 'PE:(i,j)(i',j') ...'")
+            raise ValueError("\n"+'\033[91m'+"Las plazas eléctricas han de estar especificadas con el siguiente\n \
+                              formato: 'PE:(i,j)(i',j') ...'" + '\033[0m')
         
         i = 3 # Movemos el puntero a la primera plaza enchufable
 
@@ -139,8 +147,8 @@ class Parte1:
             # Si no se sigue el formato (i,j)(i',j')..., error
             # Comprobación '('
             if fichero[i] != '(': 
-                raise ValueError("Para la declaración de las plazas, se ha de seguir el siguiente\n \
-                                 formato: (i,j)(i',j')(i'',j'')...")
+                raise ValueError("\n"+'\033[91m'+"Para la declaración de las plazas, se ha de seguir el siguiente\n \
+                                 formato: (i,j)(i',j')(i'',j'')..." + '\033[0m')
             i += 1
             
             # Comprobación 'i' = fila de la plaza y de ','
@@ -149,8 +157,8 @@ class Parte1:
                 try:
                     int(fichero[i])  
                 except ValueError:
-                    raise ValueError("Las filas de las plazas enchufables del parking deben de ser enteros\n \
-                                     seguidos de una coma ','.")
+                    raise ValueError("\n"+'\033[91m'+"Las filas de las plazas enchufables del parking deben de ser enteros\n \
+                                     seguidos de una coma ','." + '\033[0m')
                 i_pe += fichero[i]
                 i += 1
             i += 1
@@ -163,8 +171,8 @@ class Parte1:
                 try:
                     int(fichero[i])  
                 except ValueError:
-                    raise ValueError("Las columnas de las plazas enchufables del parking deben de ser enteros\n \
-                                     seguidos de un final de paréntesis ')'.")
+                    raise ValueError("\n"+'\033[91m'+"Las columnas de las plazas enchufables del parking deben de ser enteros\n \
+                                     seguidos de un final de paréntesis ')'." + '\033[0m')
                 j_pe += fichero[i]
                 i += 1
             i += 1
@@ -173,8 +181,8 @@ class Parte1:
 
             # Si las plazas enchufables no están dentro del dominio (filas), error
             if (i_pe > self.filas) or (i_pe < 1) or (j_pe > self.columnas) or (j_pe < 1):
-                raise ValueError(f"Las plazas enchufables deben estar dentro de la matriz de \
-                                 dimensiones {self.filas}x{self.columnas}.")
+                raise ValueError(f"\n"+'\033[91m'+"Las plazas enchufables deben estar dentro de la matriz de \
+                                 dimensiones {self.filas}x{self.columnas}." + '\033[0m')
             else:
                 plaza = (i_pe, j_pe)
 
@@ -200,26 +208,26 @@ class Parte1:
         lineas = fichero.split('\n') # Separamos el fichero por 'intros'
         for linea in lineas:
             if linea: 
-
+                # Establecemos los vehículos si el fichero de entrada y los
+                # valores son correctos
                 partes = linea.split('-')
- 
                 if len(partes) != 3:
-                    raise ValueError("El formato de definición de los vehículos debe ser \n \
-                                     ID(int)-TIPO(TSU o TNU)-CONGELADOR(C o X).")   
+                    raise ValueError("\n"+'\033[91m'+"El formato de definición de los vehículos debe ser \n \
+                                     ID(int)-TIPO(TSU o TNU)-CONGELADOR(C o X)." + '\033[0m')   
 
                 try:
                     id_vehiculo = int(partes[0])
                 except ValueError:
-                    raise ValueError("El ID del vehículo debe de ser un entero.")
+                    raise ValueError("\n"+'\033[91m'+"El ID del vehículo debe de ser un entero." + '\033[0m')
 
                 if partes[1] != 'TSU' and partes[1] != 'TNU':
-                    raise ValueError("El tipo de vehículo debe ser 'TSU' o 'TNU'.")
+                    raise ValueError("\n"+'\033[91m'+"El tipo de vehículo debe ser 'TSU' o 'TNU'." + '\033[0m')
                 else:
                     tipo_vehiculo = partes[1]
                 
                 if partes[2] != 'C' and partes[2] != 'X':
-                    raise ValueError("Para especificar si un vehículo tiene congelador o no, es necesario \n \
-                                     especificarlo con una 'C' (si tiene) o con una 'X' (si no).")
+                    raise ValueError("\n"+'\033[91m'+"Para especificar si un vehículo tiene congelador o no, es necesario \n \
+                                     especificarlo con una 'C' (si tiene) o con una 'X' (si no)." + '\033[0m')
                 else:
                     congelador = partes[2] == 'C'
 
@@ -245,7 +253,7 @@ class Parte1:
             if v[0] not in ids:
                 ids.append(v[0])
             else:
-                raise ValueError("Los vehículos han de tener ID's únicas.")
+                raise ValueError("\n"+'\033[91m'+"Los vehículos han de tener ID's únicas." + '\033[0m')
 
     def restriccion_3(self, vehiculos, dom_enchufables, dominio):
         """
@@ -306,8 +314,25 @@ class Parte1:
             else:
                 return True
 
+    def generar_csv(self, sols):
+        """
+        Generamos el fichero de salida con el número de soluciones encontradas 
+        al inicio. Posteriormente, agregamos la primera y algunas soluciones aleatorias.
+        """
 
+        with open(self.ruta_csv , 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['N.Sol:', len(sols)])
+            
+        if len(sols) > 0:
+            # Añadimos la primera solución siempre
+            self.agregar_solucion_a_csv(self.problema.getSolution())
 
+            # Después añadimos aleatoriamente 10 soluciones separadas por intros
+            for _ in range(min(10, len(sols))):
+                sol = choice(sols)
+                self.agregar_solucion_a_csv(sol)
+            
 
     def agregar_solucion_a_csv(self, solucion):
         # Definir las dimensiones totales del estacionamiento
@@ -324,11 +349,11 @@ class Parte1:
             estacionamiento[i - 1][j - 1] = f"{id_coche}-{tipo}{'-C' if congelador else '-X'}"
 
         # Escribir la matriz al archivo CSV
-        with open(self.csv + '.csv', 'a', newline='') as file:
+        with open(self.ruta_csv, 'a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([])  # Agregar una fila vacía para separar soluciones
             for fila in estacionamiento:
                 writer.writerow(fila)
+            writer.writerow([])  # Agregar una fila vacía para separar soluciones
   
 
 
@@ -336,7 +361,7 @@ class Parte1:
 ###############################################################################################################################
     def imprimir_estacionamiento(self, solucion):
         if solucion is None:
-            print("EL PROBLEMA NO TIENE SOLUCIÓN")
+            print("\n"+'\033[93m'+"EL PROBLEMA NO TIENE SOLUCIÓN" + '\033[0m')
             return
         # Definir las dimensiones totales del estacionamiento
         filas_totales = self.filas  # Cambiar según las filas totales de tu estacionamiento
@@ -367,7 +392,7 @@ class Parte1:
 
 if __name__ == "__main__":   
     
-    if len(sys.argv) < 2:
-        raise ValueError("Es necesario especificar un archivo como argumento")
+    if len(sys.argv) != 2:
+        raise ValueError("\n"+'\033[91m'+"Es necesario especificar un archivo como argumento" + '\033[0m')
     
     Parte1(sys.argv[1])
