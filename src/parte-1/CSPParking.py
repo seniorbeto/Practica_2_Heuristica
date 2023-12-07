@@ -43,7 +43,7 @@ class Parte1:
         # RESTRICCIONES:
 
         # Segunda restricción: Dos vehículos distintos no pueden ocupar la misma plaza
-        self.problema.addConstraint(AllDifferentConstraint(), vehiculos)
+        self.problema.addConstraint(AllDifferentConstraint(), vehiculos) 
 
         # Cuarta restricción: Un TSU no puede tener por delante un TNU
         for v1 in vehiculos:
@@ -54,18 +54,26 @@ class Parte1:
 
         
         # Quinta restricción: Todo vehículo debe tener una plaza libre a dcha o izq
-        for v1 in vehiculos:
-            for v2 in vehiculos:
-                for v3 in vehiculos:
-                    if (v1 != v2) and (v1 != v3) and (v2 != v3):
-                        self.problema.addConstraint(self.restriccion_5, (v1, v2, v3))
+        # Si solo hay un vehículo, esta restricción no tiene sentido.
+        if len(vehiculos) > 1:
+            for v1 in vehiculos:
+                for v2 in vehiculos:
+                    if len(vehiculos) > 2:
+                        for v3 in vehiculos:
+                            if v1 != v2 and v1 != v3 and v2 != v3:
+                                self.problema.addConstraint(self.restriccion_5, (v1, v2, v3))
+                    else:
+                        if v1 != v2:
+                            self.problema.addConstraint(self.restriccion_5, (v1, v2))
         
 
 
         sols = self.problema.getSolutions()
         
-        self.generar_csv(sols)
-        #self.imprimir_estacionamiento(primera_sol)
+        #self.generar_csv(sols)
+        print("NUMERO DE SOLUCIONES: ", len(sols))
+        for sol in sols:
+            self.imprimir_estacionamiento(sol)
 
 
 
@@ -290,29 +298,38 @@ class Parte1:
         
 
 
-    def restriccion_5(self, p1, p2, p3):
+    def restriccion_5(self, p1, p2, p3 = None):
         """
         Por cuestiones de maniobrabilidad dentro del parking todo vehículo debe tener libre una plaza a izquierda
         o derecha (mirando en dirección a la salida). Por ejemplo, si un vehículo ocupa la plaza 3.3 no podrá tener
         aparcado un vehículo en la 2.3 y otro en la 4.3, al menos una de esas dos plazas deberá quedar libre.
         """
-        
-        # Para cuando el vehículo está en un borde, es decir, pegado a la pared dcha o izq
-        # (i=p[0]=1, j=p[1], e) o (i=p[0]=m=filas, j, e)
-        if p1[0] == 1 or p1[0] == self.filas:
+        # Si hay 2 vehículos:
+        if p3 is None:
+            # Si v2 está a la dcha o izq de v1 (j2 = j1, misma columna) 
+            if (abs(p2[0] - p1[0]) == 1 and p2[1] == p1[1]):
+                return False
+            else:
+                return True
+            
+        # Si hay más de 2 vehículos:
+        if p3:
+            # Para cuando el vehículo está en un borde, es decir, pegado a la pared dcha o izq
+            # (i=p[0]=1, j=p[1], e) o (i=p[0]=m=filas, j, e)
+            if p1[0] == 1 or p1[0] == self.filas: 
             # Si v2 está a la dcha de v1 (j2 = j1, misma columna) OR v3 está a la izq de v1 (j3 = j1, misma columna)
-            if (p2[0] - p1[0] == 1 and p2[1] == p1[1]) or (p3[0] - p1[0] == -1 and p3[1] == p1[1]):
-                return False
+                if (p2[0] - p1[0] == 1 and p2[1] == p1[1]) or (p3[0] - p1[0] == -1 and p3[1] == p1[1]):
+                    return False
+                else:
+                    return True 
+            # Para cuando el vehículo NO está en un borde, es decir, no está pegado a la pared dcha o izq
+            # (i=p[0], j=p[1])
             else:
-                return True
-        # Para cuando el vehículo NO está en un borde, es decir, no está pegado a la pared dcha o izq
-        # (i=p[0], j=p[1])
-        else:
-            # Si v2 está a la dcha de v1 (j2 = j1, misma columna) AND v3 está a la izq de v1 (j3 = j1, misma columna)
-            if (p2[0] - p1[0] == 1 and p2[1] == p1[1]) and (p3[0] - p1[0] == -1 and p3[1] == p1[1]):
-                return False
-            else:
-                return True
+                # Si v2 está a la dcha de v1 (j2 = j1, misma columna) AND v3 está a la izq de v1 (j3 = j1, misma columna)
+                if (p2[0] - p1[0] == 1 and p2[1] == p1[1]) and (p3[0] - p1[0] == -1 and p3[1] == p1[1]):
+                    return False
+                else:
+                    return True
 
     def generar_csv(self, sols):
         """
@@ -323,15 +340,20 @@ class Parte1:
         with open(self.ruta_csv , 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['N.Sol:', len(sols)])
-            
-        if len(sols) > 0:
+        
+        # Si no hay solución no añadimos ninguna configuración
+        if len(sols) > 10:
             # Añadimos la primera solución siempre
             self.agregar_solucion_a_csv(self.problema.getSolution())
 
             # Después añadimos aleatoriamente 10 soluciones separadas por intros
-            for _ in range(min(10, len(sols))):
+            for _ in range(10):
                 sol = choice(sols)
                 self.agregar_solucion_a_csv(sol)
+        elif len(sols) > 0:
+            # Devolvemos todas las soluciones ya que son pocas
+            for i in range(len(sols)):
+                self.agregar_solucion_a_csv(sols[i])
             
 
     def agregar_solucion_a_csv(self, solucion):
