@@ -71,6 +71,9 @@ class Parte1:
         sols = self.problema.getSolutions()    
         self.generar_csv(sols)
 
+        if len(sols) >= 1:
+            print("\n"+'\033[32m'+"EL PROBLEMA TIENE SOLUCIÓN REPRESENTADA EN " + self.ruta_csv + '\033[0m')
+
 
     def leer_fichero_de_entrada(self, file: str) -> tuple:
         """
@@ -349,12 +352,12 @@ class Parte1:
             writer.writerow(['N.Sol:', len(sols)])
         
         # Si no hay solución no añadimos ninguna configuración
-        if len(sols) > 10:
+        if len(sols) > 50:
             # Añadimos la primera solución siempre
             self.agregar_solucion_a_csv(self.problema.getSolution())
 
-            # Después añadimos aleatoriamente 10 soluciones separadas por intros
-            for _ in range(10):
+            # Después añadimos aleatoriamente 50 soluciones separadas por intros
+            for _ in range(50):
                 sol = choice(sols)
                 self.agregar_solucion_a_csv(sol)
         elif len(sols) > 0:
@@ -389,43 +392,10 @@ class Parte1:
             writer = csv.writer(file)
             for fila in estacionamiento:
                 writer.writerow(fila)
-            writer.writerow([])  # Agregar una fila vacía para separar soluciones
+            writer.writerow([])  # Agregar dos filas vacía para separar soluciones
+            writer.writerow([])  
   
-
-
-#BORRAR ANTES DE ENTREGAR
-###############################################################################################################################
-    def imprimir_estacionamiento(self, solucion):
-        if solucion is None:
-            print("\n"+'\033[93m'+"EL PROBLEMA NO TIENE SOLUCIÓN" + '\033[0m')
-            return
-        # Definir las dimensiones totales del estacionamiento
-        filas_totales = self.filas  # Cambiar según las filas totales de tu estacionamiento
-        columnas_totales = self.columnas  # Cambiar según las columnas totales de tu estacionamiento
-
-        # Crear una matriz para representar el estacionamiento
-        estacionamiento = [['    -   ' for _ in range(columnas_totales)] for _ in range(filas_totales)]
-
-        # Llenar la matriz con la información de la solución
-        for vehiculo, ubicacion in solucion.items():
-            id_coche, tipo, congelador = vehiculo
-            i, j, e = ubicacion
-            estacionamiento[i - 1][j - 1] = f"{id_coche}({tipo}{'-C' if congelador else '-X'})"
-
-        # Imprimir los índices de las columnas
-        print("  ", end="")
-        for idx in range(1, columnas_totales + 1):
-            print(f"{idx: ^5}", end="")
-        print("\n")
-
-        # Imprimir el estacionamiento con los índices de las filas
-        for i, fila in enumerate(estacionamiento, start=1):
-            print(f"{i: <2}", end="")
-            for celda in fila:
-                print(f"| {celda: ^4}", end="")
-            print("|")
-###############################################################################################################################
-
+  
 if __name__ == "__main__":   
     
     if len(sys.argv) != 2:

@@ -215,3 +215,70 @@ echo "$espacio"
 echo -e "${CYAN}$msg${NC}"
 echo "$espacio"
 python3 CSPParking.py ./CSP-tests/23_V_problema_con_1_sol.txt
+
+# Prueba 26: El problema tiene 2 soluciones; 3x1, una PE, dos vehículos sin congelador X
+msg="-- PRUEBA 26: El problema tiene 2 soluciones; 3x1, una PE, dos vehículos sin congelador X --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/24_V_problema_con_2_sols.txt
+
+# Prueba 27: El problema tiene 4 soluciones; 2x2, dos PE, un vehículo TNU con C y otro TSU con X
+msg="-- PRUEBA 27: El problema tiene 4 soluciones; 2x2, dos PE, un vehículo TNU con C y otro TSU con X --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/25_V_problema_con_4_sols.txt
+
+# Prueba 28: El problema tiene 6 soluciones; 2x2, dos PE, un vehículo TSU con X y otro TNU con X
+msg="-- PRUEBA 28: El problema tiene 6 soluciones; 2x2, dos PE, un vehículo TSU con X y otro TNU con X --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/26_V_problema_con_6_sols.txt
+
+# Prueba 29: El problema tiene 8 soluciones; 2x2, dos PE, dos vehículos TSU con X 
+msg="-- PRUEBA 29: El problema tiene 8 soluciones; 2x2, dos PE, dos vehículos TSU con X --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/27_V_problema_con_8_sols.txt
+
+# Prueba 30: El problema tiene 4*4=16 soluciones; 4x4, tres PE, un vehiculo TSU con X
+msg="-- PRUEBA 30: l problema tiene 4*4=16 soluciones; 4x4, tres PE, un vehiculo TSU con X --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/28_V_problema_con_16_sols.txt
+
+# Prueba 31: El problema tiene 5 soluciones; 4x4, cinco PE, un vehiculo TSU con C
+msg="-- PRUEBA 31: El problema tiene 5 soluciones; 4x4, cinco PE, un vehiculo TSU con C --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/29_V_problema_con_5_sols.txt
+
+# Prueba 32: El problema tiene 7*2+6=20 soluciones; 3x3, tres PE, un vehiculo TNU con C y un TSU con X
+msg="-- PRUEBA 32: El problema tiene 7*2+6=20 soluciones; 3x3, tres PE, un vehiculo TNU con C y un TSU con X --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/30_V_problema_con_20_sols.txt
+
+# Prueba 33: El problema tiene 164 soluciones; 4x5, cuatro PE, un vehiculo TNU con C, un TNU con X y un TSU con C
+# NOTA: En este caso, no se muestran en el .csv las 164 soluciónes. En su lugar, se muestran 50 soluciones escogidas
+# de forma aleatoria de entre esas 164. Es posible que alguna de las 50 soluciones esté repetida en el .csv.
+msg="-- PRUEBA 33: El problema tiene 164 soluciones; 4x5, cuatro PE, un vehiculo TNU con C, un TNU con X y un TSU con C --"
+echo "$espacio"
+echo "$espacio"
+echo -e "${CYAN}$msg${NC}"
+echo "$espacio"
+python3 CSPParking.py ./CSP-tests/31_V_problema_con_164_sols.txt
+
