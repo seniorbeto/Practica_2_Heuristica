@@ -139,8 +139,8 @@ class Parte1:
         # Comprobamos el formato de declaración de plazas eléctricas
         comprobacion_def_pe = fichero[:3]
         if comprobacion_def_pe != 'PE:':
-            raise ValueError("\n"+'\033[91m'+"Las plazas eléctricas han de estar especificadas con el siguiente\n \
-                              formato: 'PE:(i,j)(i',j') ...'" + '\033[0m')
+            raise ValueError("\n"+'\033[91m'+"Las plazas eléctricas han de estar especificadas con el siguiente " +
+                              "formato: 'PE:(i,j)(i',j') ...'" + '\033[0m')
         
         i = 3 # Movemos el puntero a la primera plaza enchufable
 
@@ -150,8 +150,8 @@ class Parte1:
             # Si no se sigue el formato (i,j)(i',j')..., error
             # Comprobación '('
             if fichero[i] != '(': 
-                raise ValueError("\n"+'\033[91m'+"Para la declaración de las plazas, se ha de seguir el siguiente\n \
-                                 formato: (i,j)(i',j')(i'',j'')..." + '\033[0m')
+                raise ValueError("\n"+'\033[91m'+"Para la declaración de las plazas, se ha de seguir el siguiente " +
+                                 "formato: (i,j)(i',j')(i'',j'')..." + '\033[0m')
             i += 1
             
             # Comprobación 'i' = fila de la plaza y de ','
@@ -160,8 +160,8 @@ class Parte1:
                 try:
                     int(fichero[i])  
                 except ValueError:
-                    raise ValueError("\n"+'\033[91m'+"Las filas de las plazas enchufables del parking deben de ser enteros\n \
-                                     seguidos de una coma ','." + '\033[0m')
+                    raise ValueError("\n"+'\033[91m'+"Las filas de las plazas enchufables del parking deben de ser enteros " +
+                                     "seguidos de una coma ','." + '\033[0m')
                 i_pe += fichero[i]
                 i += 1
             i += 1
@@ -174,8 +174,8 @@ class Parte1:
                 try:
                     int(fichero[i])  
                 except ValueError:
-                    raise ValueError("\n"+'\033[91m'+"Las columnas de las plazas enchufables del parking deben de ser enteros\n \
-                                     seguidos de un final de paréntesis ')'." + '\033[0m')
+                    raise ValueError("\n"+'\033[91m'+"Las columnas de las plazas enchufables del parking deben de ser enteros " +
+                                     "seguidos de un final de paréntesis ')'." + '\033[0m')
                 j_pe += fichero[i]
                 i += 1
             i += 1
@@ -184,8 +184,8 @@ class Parte1:
 
             # Si las plazas enchufables no están dentro del dominio (filas), error
             if (i_pe > self.filas) or (i_pe < 1) or (j_pe > self.columnas) or (j_pe < 1):
-                raise ValueError(f"\n"+'\033[91m'+"Las plazas enchufables deben estar dentro de la matriz de \
-                                 dimensiones {self.filas}x{self.columnas}." + '\033[0m')
+                raise ValueError("\n"+'\033[91m'+"Las plazas enchufables deben estar dentro de la matriz de " +
+                                 f"dimensiones {self.filas}x{self.columnas}." + '\033[0m')
             else:
                 plaza = (i_pe, j_pe)
 
@@ -215,8 +215,8 @@ class Parte1:
                 # valores son correctos
                 partes = linea.split('-')
                 if len(partes) != 3:
-                    raise ValueError("\n"+'\033[91m'+"El formato de definición de los vehículos debe ser \n \
-                                     ID(int)-TIPO(TSU o TNU)-CONGELADOR(C o X)." + '\033[0m')   
+                    raise ValueError("\n"+'\033[91m'+"El formato de definición de los vehículos debe ser " +
+                                     "ID(int)-TIPO(TSU o TNU)-CONGELADOR(C o X)." + '\033[0m')   
 
                 try:
                     id_vehiculo = int(partes[0])
@@ -229,8 +229,8 @@ class Parte1:
                     tipo_vehiculo = partes[1]
                 
                 if partes[2] != 'C' and partes[2] != 'X':
-                    raise ValueError("\n"+'\033[91m'+"Para especificar si un vehículo tiene congelador o no, es necesario \n \
-                                     especificarlo con una 'C' (si tiene) o con una 'X' (si no)." + '\033[0m')
+                    raise ValueError("\n"+'\033[91m'+"Para especificar si un vehículo tiene congelador o no, es necesario " +
+                                     "especificarlo con una 'C' (si tiene) o con una 'X' (si no)." + '\033[0m')
                 else:
                     congelador = partes[2] == 'C'
 
@@ -352,6 +352,11 @@ class Parte1:
             
 
     def agregar_solucion_a_csv(self, solucion):
+        """
+        Método que sirve para agregar más soluciones separadas por intros detrás
+        de la correspondiente en el .csv.
+        """
+
         # Definir las dimensiones totales del estacionamiento
         filas_totales = self.filas  # Cambiar según las filas totales de tu estacionamiento
         columnas_totales = self.columnas  # Cambiar según las columnas totales de tu estacionamiento
