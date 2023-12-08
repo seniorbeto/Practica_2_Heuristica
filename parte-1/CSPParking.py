@@ -120,6 +120,10 @@ class Parte1:
 
         self.filas = int(m) # m = número de filas
 
+        # Si no hay filas, error
+        if (self.filas <= 0):
+            raise ValueError("\n"+'\033[91m'+"El número de filas del parking debe ser un entero positivo." + '\033[0m')
+
         n = ''
         # Leemos columnas (hasta encontrar un "/n")
         while fichero[i] != '\n': 
@@ -133,6 +137,10 @@ class Parte1:
         i += 1
 
         self.columnas = int(n) # n = número de columnas
+
+        # Si no hay columnas, error
+        if (self.columnas <= 0):
+            raise ValueError("\n"+'\033[91m'+"El número de columnas del parking debe ser un entero positivo." + '\033[0m')
 
         fichero = fichero[i:] # Movemos el puntero del fichero a la siguiente línea
 
@@ -299,6 +307,10 @@ class Parte1:
         o derecha (mirando en dirección a la salida). Por ejemplo, si un vehículo ocupa la plaza 3.3 no podrá tener
         aparcado un vehículo en la 2.3 y otro en la 4.3, al menos una de esas dos plazas deberá quedar libre.
         """
+        # Si solo hay una fila, el parking no es maniobrable (pared a dcha e izq)
+        if (self.filas == 1):
+            return False
+
         # Si hay 2 vehículos:
         if p3 is None:
             # Si v2 está a la dcha o izq de v1 (j2 = j1, misma columna) 
@@ -349,6 +361,8 @@ class Parte1:
             # Devolvemos todas las soluciones ya que son pocas
             for i in range(len(sols)):
                 self.agregar_solucion_a_csv(sols[i])
+        else:
+            print("\n"+'\033[93m'+"EL PROBLEMA NO TIENE SOLUCIÓN" + '\033[0m')
             
 
     def agregar_solucion_a_csv(self, solucion):
