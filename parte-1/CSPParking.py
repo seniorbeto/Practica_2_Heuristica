@@ -68,13 +68,8 @@ class Parte1:
         
 
 
-        sols = self.problema.getSolutions()
-        
-        #self.generar_csv(sols)
-        print("NUMERO DE SOLUCIONES: ", len(sols))
-        for sol in sols:
-            self.imprimir_estacionamiento(sol)
-
+        sols = self.problema.getSolutions()    
+        self.generar_csv(sols)
 
 
     def leer_fichero_de_entrada(self, file: str) -> tuple:
