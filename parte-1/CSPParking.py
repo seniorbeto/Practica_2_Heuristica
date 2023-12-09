@@ -15,7 +15,7 @@ from constraint import *
 
 class Parte1:
 
-    def __init__(self, fichero) -> None:
+    def __init__(self, fichero):
         """
         Se inicializa el problema mediante el fichero de entrada y se soluciona devolviendo en un .csv con el
         mismo nombre que la entrada y en el mismo directorio el resultado de salida. O bien, se devuelven los
@@ -302,8 +302,6 @@ class Parte1:
         else:
             return True
         
-
-
     def restriccion_5(self, p1, p2, p3 = None):
         """
         Por cuestiones de maniobrabilidad dentro del parking todo vehículo debe tener libre una plaza a izquierda
