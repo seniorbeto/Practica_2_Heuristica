@@ -37,13 +37,16 @@ class Parte2:
         self.num_columnas = len(self.mapa[0])
 
         # Obtenemos el número de celda del parking para establecer el estado inicial
-        i = 1
-        j = 1
-        while i <= self.num_filas:
-            while j <= self.num_columnas:
+        i = 0
+        while i < self.num_filas:
+            j = 0
+            while j < self.num_columnas:
+                print(self.mapa[i][j])
                 if self.mapa[i][j] == "P":
-                    self.pos_parking = (i, j)
+                    self.pos_parking = (i+1, j+1)
                     break
+                j+=1
+            i+=1
 
         # Estado inicial ((i, j), energía, num_C, num_N)
         self.estado = (self.pos_parking, 50, 0, 0)
