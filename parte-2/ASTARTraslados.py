@@ -98,6 +98,7 @@ class Parte2:
                     # TODO comprobar que en el fromato entrada hay ";"
                     celdas = row[0].split(";")
                     # TODO comprobar que entrada es int, N, C, CC, CN o P
+                    # y que hay como minimo un CC un P y un CN
                     matriz.append(celdas)
         except:
             raise ValueError("\n"+'\033[91m'+"Es necesario especificar una ruta válida como argumento" + '\033[0m')
@@ -125,9 +126,9 @@ class Parte2:
         # j != num_columnas
         if j_celda != self.num_columnas:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_derecha = self.mapa[i_celda][j_celda+1]
+            celda_derecha = self.mapa[i_celda-1][j_celda]
             # (i, j+1) != "X"
-            if  celda_derecha != "X":
+            if celda_derecha != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
                 # autobús tiene suficiente energía para transitar a ella
                 # Además, comprobamos is podemos recoger o dejar paientes
@@ -190,9 +191,9 @@ class Parte2:
         # j != 1
         if j_celda != 1:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_izquierda = self.mapa[i_celda][j_celda-1]
+            celda_izquierda = self.mapa[i_celda-1][j_celda-2]
             # (i, j-1) != "X"
-            if  celda_izquierda != "X":
+            if celda_izquierda != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
                 # autobús tiene suficiente energía para transitar a ella
                 # Además, comprobamos is podemos recoger o dejar paientes
@@ -255,9 +256,9 @@ class Parte2:
         # i != 1
         if i_celda != 1:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_superior = self.mapa[i_celda-1][j_celda]
+            celda_superior = self.mapa[i_celda-2][j_celda-1]
             # (i-1, j) != "X"
-            if  celda_superior != "X":
+            if celda_superior != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
                 # autobús tiene suficiente energía para transitar a ella
                 # Además, comprobamos is podemos recoger o dejar paientes
@@ -320,9 +321,9 @@ class Parte2:
         # i != num_filas
         if i_celda != self.num_filas:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_inferior = self.mapa[i_celda+1][j_celda]
+            celda_inferior = self.mapa[i_celda][j_celda-1]
             # (i+1, j) != "X"
-            if  celda_inferior != "X":
+            if celda_inferior != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
                 # autobús tiene suficiente energía para transitar a ella
                 # Además, comprobamos is podemos recoger o dejar paientes
@@ -362,7 +363,7 @@ class Parte2:
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
-                    return ((i_celda-1, j_celda), energia_inf, num_C, num_N, restantes)
+                    return ((i_celda+1, j_celda), energia_inf, num_C, num_N, restantes)
                 
         return False
 
@@ -414,6 +415,7 @@ class Parte2:
 
         # Hasta que ABIERTA esté vacía o ÉXITO
         EXITO = False
+        caca = 0
         while (len(ABIERTA) > 0) and (not EXITO):
             # Quitamos primer elemento de ABIERTA y lo metemos en CERRADA
             estado_a_expandir = ABIERTA.pop(0)
@@ -432,7 +434,9 @@ class Parte2:
                 sucesor_2 = self.MoverIzq(estado_a_expandir[0])
                 sucesor_3 = self.MoverArriba(estado_a_expandir[0])
                 sucesor_4 = self.MoverAbajo(estado_a_expandir[0])
-                if sucesor_1:
+                # No reexpandimos el padre (sucesor != padre)
+                # Si no tiene puntero al padre, es el estado inicial
+                if (sucesor_1) and ((not estado_a_expandir[3]) or (sucesor_1[0] != estado_a_expandir[3][0])):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     coste_padre = estado_a_expandir[1]
@@ -443,7 +447,7 @@ class Parte2:
                         pass
                     else:
                         ABIERTA.append((sucesor_1, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0]))                       
-                if sucesor_2:
+                if (sucesor_2) and ((not estado_a_expandir[3]) or (sucesor_2[0] != estado_a_expandir[3][0])):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     coste_padre = estado_a_expandir[1]
@@ -454,7 +458,7 @@ class Parte2:
                         pass
                     else:
                         ABIERTA.append((sucesor_2, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0])) 
-                if sucesor_3:
+                if (sucesor_3) and ((not estado_a_expandir[3]) or (sucesor_3[0] != estado_a_expandir[3][0])):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     coste_padre = estado_a_expandir[1]
@@ -465,7 +469,7 @@ class Parte2:
                         pass
                     else:
                         ABIERTA.append((sucesor_3, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0])) 
-                if sucesor_4:
+                if (sucesor_4) and ((not estado_a_expandir[3]) or (sucesor_4[0] != estado_a_expandir[3][0])):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     coste_padre = estado_a_expandir[1]
@@ -479,7 +483,7 @@ class Parte2:
                 
                 # Ordenamos la lista por función de evaluación
                 ABIERTA.sort(key=self.f)
-                print(ABIERTA)
+                print("\n", ABIERTA, "\n")
 
         return EXITO
 
