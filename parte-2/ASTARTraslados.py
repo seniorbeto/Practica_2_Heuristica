@@ -484,13 +484,15 @@ class Parte2:
                 while j < self.num_columnas:
                     if self.mapa[i][j] == 'CC' or self.mapa[i][j] == 'CN':
                         distancia_centros[(i, j)] = self.distanciaMan(indice_actual, (i, j))
-                        
+                    j += 1
+                i+=1
+
             min = None
             for elem in distancia_centros.keys():
                 if min is None:
                     min = elem
                 else:
-                    if distancia_centros[elem] < min:
+                    if distancia_centros[elem] < distancia_centros[min]:
                         min = elem
             
             distancia_centro_mas_cercano = distancia_centros[min]
