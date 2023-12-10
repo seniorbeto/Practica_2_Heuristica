@@ -9,7 +9,9 @@
 
 import csv
 import sys
-from operator import itemgetter
+import time
+from copy import deepcopy
+
 
 class Parte2:
 
@@ -44,6 +46,7 @@ class Parte2:
         while i < self.num_filas:
             j = 0
             while j < self.num_columnas:
+                # TODO solo un parking, y minimo un CC y un CN
                 if self.mapa[i][j] == "P":
                     self.pos_parking = (i+1, j+1)
                 elif (self.mapa[i][j] == "N") or (self.mapa[i][j] == "C"):
@@ -51,8 +54,11 @@ class Parte2:
                 j+=1
             i+=1
 
+        # Todos los pacientes que hay inicialmente
+        self.todos_los_pacientes = restantes
+
         # Estado inicial ((i, j), energía, num_C, num_N, pacientes_restantes_por_asistir)
-        self.estado_inicial = (self.pos_parking, 50, 0, 0, restantes)
+        self.estado_inicial = (self.pos_parking, 50, 0, 0, restantes, self.mapa)
 
         # Resolvemos problema mediante A* con la heurística indicada
         if self.AStar(num_h):
@@ -121,12 +127,13 @@ class Parte2:
         num_C = estado_actual[2]
         num_N = estado_actual[3]
         restantes = estado_actual[4]
+        mapa = deepcopy(estado_actual[5])
         
         # Si estamos en un borde derecho no podemos realizar dicha operación
         # j != num_columnas
         if j_celda != self.num_columnas:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_derecha = self.mapa[i_celda-1][j_celda]
+            celda_derecha = mapa[i_celda-1][j_celda]
             # (i, j+1) != "X"
             if celda_derecha != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
@@ -139,25 +146,29 @@ class Parte2:
                     # (c=0) y (n<10)
                     if (num_C == 0) and (num_N < 10):
                         num_N += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda-1][j_celda] = "1"
                     coste_dcha = 1
                 elif (celda_derecha == "C"):
                     # Si hay espacio y ningún paciente N sentado en un sitio de
                     # C's, se puede recoger al C
                     if (num_C < 2) and (num_N <= 8):
                         num_C += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda-1][j_celda] = "1"
                     coste_dcha = 1
                 elif (celda_derecha == "CN"):
                     # Si no tenemos C's y tenemos N's, los dejamos. Si no, los 
                     # C's deben ser dejados los primeros
                     if (num_C == 0) and (num_N > 0):
+                        restantes -= num_N
                         num_N = 0
-                        restantes -= 1
                     coste_dcha = 1
                 elif (celda_derecha == "CC"):
                     # Si tenemos C's los dejamos
                     if (num_C > 0):
-                        num_C = 0
-                        restantes -= 1
+                        restantes -= num_C
+                        num_C = 0          
                     coste_dcha = 1
                 else:
                     coste_dcha = int(celda_derecha)
@@ -168,7 +179,7 @@ class Parte2:
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
-                    return ((i_celda, j_celda+1), energia_dcha, num_C, num_N, restantes)
+                    return ((i_celda, j_celda+1), energia_dcha, num_C, num_N, restantes, mapa)
                 
         return False
     
@@ -186,12 +197,13 @@ class Parte2:
         num_C = estado_actual[2]
         num_N = estado_actual[3]
         restantes = estado_actual[4]
+        mapa = deepcopy(estado_actual[5])
         
         # Si estamos en un borde izquierdo no podemos realizar dicha operación
         # j != 1
         if j_celda != 1:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_izquierda = self.mapa[i_celda-1][j_celda-2]
+            celda_izquierda = mapa[i_celda-1][j_celda-2]
             # (i, j-1) != "X"
             if celda_izquierda != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
@@ -204,25 +216,29 @@ class Parte2:
                     # (c=0) y (n<10)
                     if (num_C == 0) and (num_N < 10):
                         num_N += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda-1][j_celda-2] = "1"
                     coste_izq = 1
                 elif (celda_izquierda == "C"):
                     # Si hay espacio y ningún paciente N sentado en un sitio de
                     # C's, se puede recoger al C
                     if (num_C < 2) and (num_N <= 8):
                         num_C += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda-1][j_celda-2] = "1"
                     coste_izq = 1
                 elif (celda_izquierda == "CN"):
                     # Si no tenemos C's y tenemos N's, los dejamos. Si no, los 
                     # C's deben ser dejados los primeros
                     if (num_C == 0) and (num_N > 0):
+                        restantes -= num_N
                         num_N = 0
-                        restantes -= 1
                     coste_izq = 1
                 elif (celda_izquierda == "CC"):
                     # Si tenemos C's los dejamos
                     if (num_C > 0):
+                        restantes -= num_C
                         num_C = 0
-                        restantes -= 1
                     coste_izq = 1
                 else:
                     coste_izq = int(celda_izquierda)
@@ -233,7 +249,7 @@ class Parte2:
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
-                    return ((i_celda, j_celda-1), energia_izq, num_C, num_N, restantes)
+                    return ((i_celda, j_celda-1), energia_izq, num_C, num_N, restantes, mapa)
                 
         return False
         
@@ -251,12 +267,13 @@ class Parte2:
         num_C = estado_actual[2]
         num_N = estado_actual[3]
         restantes = estado_actual[4]
+        mapa = deepcopy(estado_actual[5])
         
         # Si estamos en un borde superior no podemos realizar dicha operación
         # i != 1
         if i_celda != 1:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_superior = self.mapa[i_celda-2][j_celda-1]
+            celda_superior = mapa[i_celda-2][j_celda-1]
             # (i-1, j) != "X"
             if celda_superior != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
@@ -269,25 +286,29 @@ class Parte2:
                     # (c=0) y (n<10)
                     if (num_C == 0) and (num_N < 10):
                         num_N += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda-2][j_celda-1] = "1"
                     coste_sup = 1
                 elif (celda_superior == "C"):
                     # Si hay espacio y ningún paciente N sentado en un sitio de
                     # C's, se puede recoger al C
                     if (num_C < 2) and (num_N <= 8):
                         num_C += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda-2][j_celda-1] = "1"
                     coste_sup = 1
                 elif (celda_superior == "CN"):
                     # Si no tenemos C's y tenemos N's, los dejamos. Si no, los 
                     # C's deben ser dejados los primeros
                     if (num_C == 0) and (num_N > 0):
+                        restantes -= num_N
                         num_N = 0
-                        restantes -= 1
                     coste_sup = 1
                 elif (celda_superior == "CC"):
                     # Si tenemos C's los dejamos
                     if (num_C > 0):
+                        restantes -= num_C
                         num_C = 0
-                        restantes -= 1
                     coste_sup = 1
                 else:
                     coste_sup = int(celda_superior)
@@ -298,7 +319,7 @@ class Parte2:
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
-                    return ((i_celda-1, j_celda), energia_sup, num_C, num_N, restantes)
+                    return ((i_celda-1, j_celda), energia_sup, num_C, num_N, restantes, mapa)
                 
         return False      
     
@@ -316,12 +337,13 @@ class Parte2:
         num_C = estado_actual[2]
         num_N = estado_actual[3]
         restantes = estado_actual[4]
+        mapa = deepcopy(estado_actual[5])
         
         # Si estamos en un borde inferior no podemos realizar dicha operación
         # i != num_filas
         if i_celda != self.num_filas:
             # Obtenemos la celda siguiente y comprobamos si es transitable
-            celda_inferior = self.mapa[i_celda][j_celda-1]
+            celda_inferior = mapa[i_celda][j_celda-1]
             # (i+1, j) != "X"
             if celda_inferior != "X":
                 # Si es transitable obtenemos su coste para comprobar si el
@@ -334,25 +356,29 @@ class Parte2:
                     # (c=0) y (n<10)
                     if (num_C == 0) and (num_N < 10):
                         num_N += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda][j_celda-1] = "1"
                     coste_inf = 1
                 elif (celda_inferior == "C"):
                     # Si hay espacio y ningún paciente N sentado en un sitio de
                     # C's, se puede recoger al C
                     if (num_C < 2) and (num_N <= 8):
                         num_C += 1
+                        # Modificamos el mapa indicando que ya hemos recogido al paciente
+                        mapa[i_celda][j_celda-1] = "1"
                     coste_inf = 1
                 elif (celda_inferior == "CN"):
                     # Si no tenemos C's y tenemos N's, los dejamos. Si no, los 
                     # C's deben ser dejados los primeros
                     if (num_C == 0) and (num_N > 0):
+                        restantes -= num_N
                         num_N = 0
-                        restantes -= 1
                     coste_inf = 1
                 elif (celda_inferior == "CC"):
                     # Si tenemos C's los dejamos
                     if (num_C > 0):
+                        restantes -= num_C
                         num_C = 0
-                        restantes -= 1
                     coste_inf = 1
                 else:
                     coste_inf = int(celda_inferior)
@@ -363,7 +389,7 @@ class Parte2:
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
-                    return ((i_celda+1, j_celda), energia_inf, num_C, num_N, restantes)
+                    return ((i_celda+1, j_celda), energia_inf, num_C, num_N, restantes, mapa)
                 
         return False
 
@@ -395,14 +421,17 @@ class Parte2:
         Implementación del algorítmo A* haciendo uso de la heurística indicada
         como argumento. Devuelve True si ha encontrado solución y Flase si no.
         """
+        # Inicializamos el cronómetro
+        inicio_contador = time.time()
+        
         # Lista ABIERTA: elementos ordenados por mejor función de evaluación,
         # estados pendientes de expandir
         # Elementos de ABIERTA: 
-        # [estado: ((i, j), energía, num_C, num_N, restantes), coste, heuristica, puntero_padre]
+        # [((i, j), energía, num_C, num_N, restantes, mapa_actual), coste, heuristica, puntero_padre]
         ABIERTA = []
         # Lista CERRADA: elementos ya expandidos
         # Elementos de CERRADA: 
-        # [estado: ((i, j), energía, num_C, num_N, restantes), coste, heuristica, puntero_padre]
+        # [((i, j), energía, num_C, num_N, restantes, mapa_actual), coste, heuristica, puntero_padre]
         CERRADA = []
 
         # Iniciamos algorítmo con el estado inicial
@@ -415,77 +444,191 @@ class Parte2:
 
         # Hasta que ABIERTA esté vacía o ÉXITO
         EXITO = False
-        caca = 0
         while (len(ABIERTA) > 0) and (not EXITO):
             # Quitamos primer elemento de ABIERTA y lo metemos en CERRADA
             estado_a_expandir = ABIERTA.pop(0)
-            CERRADA.append(estado_a_expandir)
+  
+            # Por limpieza de código, extraemos la información
+            tupla_estado = estado_a_expandir[0]
+            celda = estado_a_expandir[0][0]
+            energia_padre = estado_a_expandir[0][1]
+            num_C = estado_a_expandir[0][2]
+            num_N = estado_a_expandir[0][3]
+            restantes = estado_a_expandir[0][4]
+            coste_padre = estado_a_expandir[1]
+
             # Si el estado a expandir es final, entonces ÉXITO
             # (celda) = (celda_parking) y energía > 1 y num_C = 0 y num_N = 0 y restantes = 0
-            if (estado_a_expandir[0][0] == self.pos_parking) and (estado_a_expandir[0][1] > 1) \
-                and (estado_a_expandir[0][2] == 0) and (estado_a_expandir[0][3] == 0) and \
-                (estado_a_expandir[0][4] == 0):
+            if (celda == self.pos_parking) and (energia_padre > 1) and (num_C == 0) and (num_N == 0) and \
+                (restantes == 0):
+                    CERRADA.append(estado_a_expandir)
+                    EXITO = True
+                    final_contador = time.time()
 
-                EXITO = True
-            # Si no, expandimos el estado y añademos sus sucesores a ABIERTA
-            # ordenados por su función de evaluación f
-            else:
-                sucesor_1 = self.MoverDcha(estado_a_expandir[0])
-                sucesor_2 = self.MoverIzq(estado_a_expandir[0])
-                sucesor_3 = self.MoverArriba(estado_a_expandir[0])
-                sucesor_4 = self.MoverAbajo(estado_a_expandir[0])
+            # Si no, antes de meter el estado en CERRADA y expandirlo, comprobamos si ya
+            # se encuentra en CERRADA para evitar reexpansiones
+            expandir = True
+            for estado_en_cerrada in CERRADA:
+                if tupla_estado in estado_en_cerrada:
+                    # Si está comprobamos cuál es mejor de los dos
+                    if self.f(estado_a_expandir) < self.f(estado_en_cerrada):
+                        # Metemos nuevo estado y eliminamos el anterior
+                        CERRADA.remove(estado_en_cerrada)
+                        CERRADA.append(estado_a_expandir)
+                        # Reecalculamos los costes, ya que ahora tenemos un camino
+                        # mejor para llegar al estado en cuestión
+                        for estado_en_abierta in ABIERTA:
+                            # Modificamos los estados cuyo padre sea el estado añadido
+                            if tupla_estado == estado_en_abierta[3][0]:
+                                # Coste hijo = coste llegar nuevo padre + el suyo (el de antes - 
+                                # el del padre anterior)
+                                estado_en_abierta[1] = coste_padre + (estado_en_abierta[1] - estado_en_cerrada[1])
+                                # Puntero al padre = puntero al nuevo padre
+                                estado_en_abierta[3] = tupla_estado
+                                # Modificamos la energía, el num_C, el num_N, los restantes y el mapa
+                                # haciendo uso del operador correspondiente
+                                celda_hijo = estado_en_abierta[0][0]
+                                celda_padre = celda
+                                # El hijo está a la derecha del padre: j_h > j_p
+                                if (celda_hijo[1] > celda_padre[1]):
+                                    estado_en_abierta[0] = self.MoverDcha(tupla_estado)
+                                # El hijo está a la izquierda del padre: j_h < j_p
+                                elif (celda_hijo[1] < celda_padre[1]):
+                                    estado_en_abierta[0] = self.MoverIzq(tupla_estado)
+                                # El hijo está a la arriba del padre: i_h < i_p
+                                elif (celda_hijo[0] < celda_padre[0]):
+                                    estado_en_abierta[0] = self.MoverArriba(tupla_estado)
+                                # El hijo está a debajo del padre: i_h > i_p
+                                elif (celda_hijo[0] > celda_padre[0]):
+                                    estado_en_abierta[0] = self.MoverAbajo(tupla_estado)
+                                
+                    # Marcamos que no hay que reexpandir
+                    expandir = False
+                    break
+
+            if expandir:
+                CERRADA.append(estado_a_expandir)
+                # Si no, expandimos el estado y añademos sus sucesores a ABIERTA
+                # ordenados por su función de evaluación f
+                sucesor_1 = self.MoverDcha(tupla_estado)
+                sucesor_2 = self.MoverIzq(tupla_estado)
+                sucesor_3 = self.MoverArriba(tupla_estado)
+                sucesor_4 = self.MoverAbajo(tupla_estado)
                 # No reexpandimos el padre (sucesor != padre)
                 # Si no tiene puntero al padre, es el estado inicial
-                if (sucesor_1) and ((not estado_a_expandir[3]) or (sucesor_1[0] != estado_a_expandir[3][0])):
+                # TODO la reexpansion mal, puede que quiera volver pa trás
+                if (sucesor_1):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
-                    coste_padre = estado_a_expandir[1]
-                    coste_hijo = estado_a_expandir[0][1] - sucesor_1[1]
+                    energia_hijo = sucesor_1[1]
+                    coste_hijo = energia_padre - energia_hijo
                     if num_h == 1:
                         pass
                     elif num_h == 2:
                         pass
                     else:
-                        ABIERTA.append((sucesor_1, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0]))                       
-                if (sucesor_2) and ((not estado_a_expandir[3]) or (sucesor_2[0] != estado_a_expandir[3][0])):
+                        ABIERTA.append((sucesor_1, coste_padre+coste_hijo, self.h3(), tupla_estado))                       
+                if (sucesor_2):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
-                    coste_padre = estado_a_expandir[1]
-                    coste_hijo = estado_a_expandir[0][1] - sucesor_2[1]
+                    energia_hijo = sucesor_2[1]
+                    coste_hijo = energia_padre - energia_hijo
                     if num_h == 1:
                         pass
                     elif num_h == 2:
                         pass
                     else:
-                        ABIERTA.append((sucesor_2, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0])) 
-                if (sucesor_3) and ((not estado_a_expandir[3]) or (sucesor_3[0] != estado_a_expandir[3][0])):
+                        ABIERTA.append((sucesor_2, coste_padre+coste_hijo, self.h3(), tupla_estado)) 
+                if (sucesor_3):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
-                    coste_padre = estado_a_expandir[1]
-                    coste_hijo = estado_a_expandir[0][1] - sucesor_3[1]
+                    energia_hijo = sucesor_3[1]
+                    coste_hijo = energia_padre - energia_hijo
                     if num_h == 1:
                         pass
                     elif num_h == 2:
                         pass
                     else:
-                        ABIERTA.append((sucesor_3, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0])) 
-                if (sucesor_4) and ((not estado_a_expandir[3]) or (sucesor_4[0] != estado_a_expandir[3][0])):
+                        ABIERTA.append((sucesor_3, coste_padre+coste_hijo, self.h3(), tupla_estado)) 
+                if (sucesor_4):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
-                    coste_padre = estado_a_expandir[1]
-                    coste_hijo = estado_a_expandir[0][1] - sucesor_4[1]
+                    energia_hijo = sucesor_4[1]
+                    coste_hijo = energia_padre - energia_hijo
                     if num_h == 1:
                         pass
                     elif num_h == 2:
                         pass
                     else:
-                        ABIERTA.append((sucesor_4, coste_padre+coste_hijo, self.h3(), estado_a_expandir[0])) 
+                        ABIERTA.append((sucesor_4, coste_padre+coste_hijo, self.h3(), tupla_estado)) 
                 
                 # Ordenamos la lista por función de evaluación
                 ABIERTA.sort(key=self.f)
-                print("\n", ABIERTA, "\n")
+        
+        if EXITO:
+            # El último estado de la lista CERRADA será siempre el estado final 
+            # de la solución.
+            estado_final = CERRADA[-1]
+            solucion = [estado_final]
+            # Recuperamos la solución yendo a la inversa, siguiendo los 
+            # punteros padre
+            # Hasta encontrar estado inicial = ((pos_parking, 50, 0, 0, todos_restantes))
+            while (solucion[0][0][0] != self.pos_parking) or (solucion[0][0][1] != 50) or \
+                  (solucion[0][0][2] != 0) or (solucion[0][0][3] != 0) or \
+                  (solucion[0][0][4] != self.todos_los_pacientes): 
+                # Obtenemos el puntero del padre del primer elemento, que es siguiente
+                # a encontrar su padre
+                current_puntero_padre = solucion[0][3]
+                # Buscamos el elemento correspondiente en la lista CERRADA
+                for elem in CERRADA:
+                    if elem[0] == current_puntero_padre:
+                        solucion.insert(0, elem)
+                        break
+            
+            tiempo_total = round(final_contador - inicio_contador, 4)
+            self.generar_solucion_output(solucion)
+            # Le pasamos la solución para obtener el coste total, le pasamos el tiempo total
+            # ya calculado, la longitud del plan que es la longitud de la lista que contiene la
+            # solución y el número de nodos expandidos que es la longitud de la lista CERRADA
+            self.generar_estadisticas_stat(solucion, tiempo_total, len(solucion), len(CERRADA))
 
         return EXITO
+    
+    def generar_solucion_output(self, solucion: list):
+        """
+        Generamos un fichero .output en el que definimos el orden que ha seguido el 
+        algoritmo para encontrar la solución. Contiene una línea por casilla transitada con el siguiente
+        formato: (x,y):valor:carga, donde x es el numero de fila en el mapa, y el de columna, valor
+        el coste o tipo de celda (N, C, CC, CN o P) según el caso y carga el valor de carga que le queda al
+        vehículo en ese momento. 
+        """
+        cadena = ''
+        for elem in solucion: 
+            posicion = elem[0][0]
+            tipo_celda = self.mapa[posicion[0]-1][posicion[1]-1]
+            carga_restante = elem[0][1]
+            cadena += str(posicion) + ':' + tipo_celda + ':' + str(carga_restante) + '\n'
+
+        with open(self.ruta_output, mode='w') as file: 
+            file.write(cadena)
+            
+    
+    def generar_estadisticas_stat(self, solucion: list, tiempo_total, longitud_del_plan, nodos_expandidos):
+        """
+        Generamos un fichero .stat que contiene informacion relativa al proceso de búsqueda, como el
+        tiempo total, coste total, longitud de la solución y los nodos expandidos. 
+        """
+        tiempo = 'Tiempo total: ' + str(tiempo_total) + '\n'
+        coste = 'Coste total: ' + str(solucion[-1][1]) + '\n'
+        longitud = 'Longitud del plan: ' + str(longitud_del_plan) + '\n'
+        expandidos = 'Nodos expandidos: ' + str(nodos_expandidos)
+
+        with open(self.ruta_stat, mode='w') as file: 
+            file.write(tiempo)
+            file.write(coste)
+            file.write(longitud)
+            file.write(expandidos)
+
 
 
 if __name__ == "__main__":   
