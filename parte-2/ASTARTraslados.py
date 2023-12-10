@@ -26,11 +26,11 @@ class Parte2:
         try:
             num_h = int(num_h)
         except:
-            raise ValueError("\n"+'\033[91m'+"El número de heurísitca a utilizar debe ser un entero" + '\033[0m')
+            raise ValueError("\n"+'\033[91m'+"El número de heurísitca a utilizar debe ser un entero." + '\033[0m')
 
         # Si la heurística no está entre 1 y 3, error
         if (num_h <= 0) or (num_h > 3):
-            raise ValueError("\n"+'\033[91m'+"Es necesario especificar una heurísitca entre 1 y 3 (incluidos)" + '\033[0m')
+            raise ValueError("\n"+'\033[91m'+"Es necesario especificar una heurísitca entre 1 y 3 (incluidos)." + '\033[0m')
 
         # Primero obtenemos el mapa como una matriz
         self.mapa = self.leer_fichero_de_entrada(mapa, num_h)
@@ -41,23 +41,39 @@ class Parte2:
 
         # Obtenemos el número de celda del parking y la cantidad de pacientes que
         # requieren asistencia para establecer el estado inicial
+        hay_parking = False
+        hay_CC = False
+        hay_CN = False
         restantes = 0
         i = 0
         while i < self.num_filas:
             j = 0
             while j < self.num_columnas:
-                # TODO solo un parking, y minimo un CC y un CN
+                # Comprobar que hay un único P 
                 if self.mapa[i][j] == "P":
+                    if hay_parking:
+                        raise ValueError("\n"+'\033[91m'+"El mapa debe tener únicamente un parking." + '\033[0m')
                     self.pos_parking = (i+1, j+1)
+                    hay_parking = True
                 elif (self.mapa[i][j] == "N") or (self.mapa[i][j] == "C"):
                     restantes += 1
+                # Comrpobamos que hay como mínimo un CC
+                elif (self.mapa[i][j] == "CC"):
+                    hay_CC = True
+                # Comprobamos que hay como mínimo un CN
+                elif (self.mapa[i][j] == "CN"):
+                    hay_CN = True
                 j+=1
             i+=1
+
+        # Si no hay un CC ni un CN, error
+        if (not hay_CC) or (not hay_CN):
+            raise ValueError("\n"+'\033[91m'+"El mapa debe tener como minímo un CC y un CN." + '\033[0m')
 
         # Todos los pacientes que hay inicialmente
         self.todos_los_pacientes = restantes
 
-        # Estado inicial ((i, j), energía, num_C, num_N, pacientes_restantes_por_asistir)
+        # Estado inicial ((i, j), energía, num_C, num_N, pacientes_restantes_por_dejar, mapa)
         self.estado_inicial = (self.pos_parking, 50, 0, 0, restantes, self.mapa)
 
         # Resolvemos problema mediante A* con la heurística indicada
@@ -99,16 +115,38 @@ class Parte2:
         
         try:
             with open(mapa, newline='') as csvfile:
-                mapa_reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-                for row in mapa_reader:
-                    # TODO comprobar que en el fromato entrada hay ";"
-                    celdas = row[0].split(";")
-                    # TODO comprobar que entrada es int, N, C, CC, CN o P
-                    # y que hay como minimo un CC un P y un CN
-                    matriz.append(celdas)
+                mapa_reader = list(csv.reader(csvfile, delimiter="\n", quotechar='|'))
         except:
-            raise ValueError("\n"+'\033[91m'+"Es necesario especificar una ruta válida como argumento" + '\033[0m')
+            raise ValueError("\n"+'\033[91m'+"Es necesario especificar una ruta válida como argumento." + '\033[0m')
+                
+        validos = ['C', 'CC', 'CN', 'N', 'P', 'X']
+        check_num_filas = None
+        for row in mapa_reader:
+            row[0] = row[0].replace(' ', 'no_valido')
+            celdas = row[0].split(";")
 
+            # Comprobamos que en las celdas solamente hay valores válidos y están
+            # separados por ';'
+            for c in celdas:
+                if c not in validos:
+                    # Comprobar que es un entero
+                    try:
+                        int(c) 
+                    except:
+                        raise ValueError("\n"+'\033[91m'+"El valor de una celda en el mapa debe ser N, C," + 
+                                        "CC, CN, P o un entero, separados por ';' sin espacios."+ '\033[0m')
+
+            # Comprobamos que el mapa es rectangular (mismo número de columnas en 
+            # cada fila)
+            if check_num_filas is not None:
+                if len(celdas) != check_num_filas:
+                    print(len(celdas))
+                    raise ValueError("\n"+'\033[91m'+"El mapa debe ser rectangular." + '\033[0m')
+            else:
+                check_num_filas = len(celdas)
+
+            matriz.append(celdas)
+        
         return matriz
     
     # OPERADORES:
@@ -173,9 +211,13 @@ class Parte2:
                 else:
                     coste_dcha = int(celda_derecha)
                 # e > Coste celda derecha
-                if energia > coste_dcha:
+                if (energia > coste_dcha):
                     # Actualizamos energía 
                     energia_dcha = energia - coste_dcha
+
+                    # Si estamos en el parking recargamos energía
+                    if (celda_derecha == "P"):
+                        energia_dcha = 50
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
@@ -247,6 +289,10 @@ class Parte2:
                     # Actualizamos energía 
                     energia_izq = energia - coste_izq
 
+                    # Si estamos en el parking recargamos energía
+                    if (celda_izquierda == "P"):
+                        energia_izq = 50
+
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
                     return ((i_celda, j_celda-1), energia_izq, num_C, num_N, restantes, mapa)
@@ -316,6 +362,10 @@ class Parte2:
                 if energia > coste_sup:
                     # Actualizamos energía 
                     energia_sup = energia - coste_sup
+
+                    # Si estamos en el parking recargamos energía
+                    if (celda_superior == "P"):
+                        energia_sup = 50
 
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
@@ -387,6 +437,10 @@ class Parte2:
                     # Actualizamos energía 
                     energia_inf = energia - coste_inf
 
+                    # Si estamos en el parking recargamos energía
+                    if (celda_inferior == "P"):
+                        energia_inf = 50
+
                     # Devolvemos el estado que se genraría al transitar a la
                     # derecha
                     return ((i_celda+1, j_celda), energia_inf, num_C, num_N, restantes, mapa)
@@ -395,13 +449,68 @@ class Parte2:
 
     # HEURÍSTICAS:
     
-    def h1(self):
+    def h1(self, estado: tuple) -> int:
+        """
+        Heurística que dado un estado, devuelve el camino mínimo usando la distancia Manhatan
+        (sin tener en cuenta los costes y las paredes, coste unitario siempre) que debería hacer 
+        el bus para dejar y recoger pacientes en el centro más cercano. O volver al parking en 
+        caso de que no queden pacientes por dejar.
+
+        Si restantes = 0 -> h1(estado) = distanciaMan(a P)
+        Si restantes > 0 -> h1(estado) = pacientes_que_quedan_por_recoger + 
+                                         distanciaMan(a cualquier CENTRO <el más cercano>) + 
+                                         distanciaMan(a P desde ese CENTRO)
+        """    
+
+        indice_actual = estado[0]
+        num_C_recogidos = estado[2]
+        num_N_recogidos = estado[3]
+        pacientes_restantes_por_dejar = estado[4]
+        # Estado ((i, j), energía, num_C, num_N, pacientes_restantes_por_dejar, mapa)
+
+        if pacientes_restantes_por_dejar == 0:
+            return self.distanciaMan(indice_actual, self.pos_parking)
+        else:
+            # Calculamos pacientes que quedan por dejar en sus centros
+            quedan_por_recoger = self.todos_los_pacientes - (num_C_recogidos + num_N_recogidos)
+            
+            # Calculamos la distancia Manhattan desde donde estamos 
+            # hasta el centro más cercano
+            distancia_centros = {}
+            i = 0
+            while i < self.num_filas:
+                j = 0
+                while j < self.num_columnas:
+                    if self.mapa[i][j] == 'CC' or self.mapa[i][j] == 'CN':
+                        distancia_centros[(i, j)] = self.distanciaMan(indice_actual, (i, j))
+                        
+            min = None
+            for elem in distancia_centros.keys():
+                if min is None:
+                    min = elem
+                else:
+                    if distancia_centros[elem] < min:
+                        min = elem
+            
+            distancia_centro_mas_cercano = distancia_centros[min]
+
+            ditancia_centro_mas_cercano_a_parking = self.distanciaMan(min, self.pos_parking)
+
+            return distancia_centro_mas_cercano + ditancia_centro_mas_cercano_a_parking + quedan_por_recoger
+            
+
+    def distanciaMan(self, indice1: tuple, indice2: tuple) -> int:
+        """
+        Distancia Manhattan entre dos elementos del mapa dados sus índices.
+        """
+        diferencia_filas = abs(indice1[0] - indice2[0])
+        diferencia_columnas = abs(indice1[1] - indice2[1])
+        return abs(diferencia_filas - diferencia_columnas)
+        
+    def h2(self) -> int:
         pass
 
-    def h2(self):
-        pass
-
-    def h3(self):
+    def h3(self) -> int:
         """
         Heurística extra que siempre devuelve 0. Es el equivalente a hacer Dijkstra.
         """
@@ -436,7 +545,7 @@ class Parte2:
 
         # Iniciamos algorítmo con el estado inicial
         if num_h == 1:
-            pass
+            ABIERTA.append((self.estado_inicial, 0, self.h1(self.estado_inicial), None))
         elif num_h == 2:
             pass
         else:
@@ -514,16 +623,14 @@ class Parte2:
                 sucesor_2 = self.MoverIzq(tupla_estado)
                 sucesor_3 = self.MoverArriba(tupla_estado)
                 sucesor_4 = self.MoverAbajo(tupla_estado)
-                # No reexpandimos el padre (sucesor != padre)
-                # Si no tiene puntero al padre, es el estado inicial
-                # TODO la reexpansion mal, puede que quiera volver pa trás
                 if (sucesor_1):
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     energia_hijo = sucesor_1[1]
-                    coste_hijo = energia_padre - energia_hijo
+                    # Para evitar ciclos negativos al volver al parking y recargar la energía:
+                    coste_hijo = max(energia_padre - energia_hijo, 1)
                     if num_h == 1:
-                        pass
+                        ABIERTA.append((sucesor_1, coste_padre+coste_hijo, self.h1(sucesor_1), tupla_estado)) 
                     elif num_h == 2:
                         pass
                     else:
@@ -532,9 +639,10 @@ class Parte2:
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     energia_hijo = sucesor_2[1]
-                    coste_hijo = energia_padre - energia_hijo
+                    # Para evitar ciclos negativos al volver al parking y recargar la energía:
+                    coste_hijo = max(energia_padre - energia_hijo, 1)
                     if num_h == 1:
-                        pass
+                        ABIERTA.append((sucesor_2, coste_padre+coste_hijo, self.h1(sucesor_2), tupla_estado)) 
                     elif num_h == 2:
                         pass
                     else:
@@ -543,9 +651,10 @@ class Parte2:
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     energia_hijo = sucesor_3[1]
-                    coste_hijo = energia_padre - energia_hijo
+                    # Para evitar ciclos negativos al volver al parking y recargar la energía:
+                    coste_hijo = max(energia_padre - energia_hijo, 1)
                     if num_h == 1:
-                        pass
+                        ABIERTA.append((sucesor_3, coste_padre+coste_hijo, self.h1(sucesor_3), tupla_estado)) 
                     elif num_h == 2:
                         pass
                     else:
@@ -554,9 +663,10 @@ class Parte2:
                     # Coste para llegar al sucesor: coste_padre + coste_hijo
                     # coste_hijo = energia_restante_padre - energia_restante_hijo 
                     energia_hijo = sucesor_4[1]
-                    coste_hijo = energia_padre - energia_hijo
+                    # Para evitar ciclos negativos al volver al parking y recargar la energía:
+                    coste_hijo = max(energia_padre - energia_hijo, 1)
                     if num_h == 1:
-                        pass
+                        ABIERTA.append((sucesor_4, coste_padre+coste_hijo, self.h1(sucesor_4), tupla_estado)) 
                     elif num_h == 2:
                         pass
                     else:
