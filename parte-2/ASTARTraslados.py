@@ -447,6 +447,7 @@ class Parte2:
                 
         return False
 
+
     # HEURÍSTICAS:
     
     def h1(self, estado: tuple) -> int:
@@ -501,7 +502,8 @@ class Parte2:
 
     def distanciaMan(self, indice1: tuple, indice2: tuple) -> int:
         """
-        Distancia Manhattan entre dos elementos del mapa dados sus índices.
+        Distancia Manhattan entre dos elementos del mapa dados sus índices
+        (suponiendo costes unitarios).
         """
         diferencia_filas = abs(indice1[0] - indice2[0])
         diferencia_columnas = abs(indice1[1] - indice2[1])
