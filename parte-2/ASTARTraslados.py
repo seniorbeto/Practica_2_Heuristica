@@ -633,6 +633,8 @@ class Parte2:
                 # exactamente lo mismo que en el caso anterior
 
                 # FIXME revisar este caso porque creo que está mal.
+                # Hay que contemplar que el bus pueda coger a los pacientes restantes en el trayecto de
+                # la posición actual hasta NC.
 
                 distancia_mas_rentable = -1
                 for nc in centros_nc.keys():
