@@ -512,6 +512,12 @@ class Parte2:
         return abs(diferencia_filas - diferencia_columnas)
         
     def h2(self) -> int:
+        """
+        N/10 -> 10(num_N)+disM(a CN)
+        Si N/10 ahora es <0 (quedan menos o igual que 8 num_N's) -> num_N+(num_C/2 los que quepan)+dis(CN a CC)+dis(de CC a CN)
+        ...
+        ultima dis(desde donde te quedas a P)
+        """
         pass
 
     def h3(self) -> int:
@@ -557,6 +563,7 @@ class Parte2:
 
         # Hasta que ABIERTA esté vacía o ÉXITO
         EXITO = False
+        caca = 0
         while (len(ABIERTA) > 0) and (not EXITO):
             # Quitamos primer elemento de ABIERTA y lo metemos en CERRADA
             estado_a_expandir = ABIERTA.pop(0)
@@ -678,6 +685,9 @@ class Parte2:
                 
                 # Ordenamos la lista por función de evaluación
                 ABIERTA.sort(key=self.f)
+                if (caca == 4):
+                    print(ABIERTA)
+                caca+=1
         
         if EXITO:
             # El último estado de la lista CERRADA será siempre el estado final 
