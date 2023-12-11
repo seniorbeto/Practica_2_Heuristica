@@ -1,6 +1,8 @@
 venv
 .idea 
 /parte-1/**.csv
+**.output
+**.stat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
