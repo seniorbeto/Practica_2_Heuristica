@@ -511,14 +511,193 @@ class Parte2:
         diferencia_columnas = abs(indice1[1] - indice2[1])
         return abs(diferencia_filas - diferencia_columnas)
         
-    def h2(self) -> int:
+    def h2(self, estado: tuple) -> int:
         """
         N/10 -> 10(num_N)+disM(a CN)
         Si N/10 ahora es <0 (quedan menos o igual que 8 num_N's) -> num_N+(num_C/2 los que quepan)+dis(CN a CC)+dis(de CC a CN)
         ...
         ultima dis(desde donde te quedas a P)
         """
-        pass
+        indice_actual = estado[0]
+        num_C_recogidos = estado[2]
+        num_N_recogidos = estado[3]
+        pacientes_restantes_por_dejar = estado[4]
+        mapa_estado = estado[5]
+        # Estado ((i, j), energía, num_C, num_N, pacientes_restantes_por_dejar, mapa)
+
+        # Dado el mapa del estado, obtenemos cuántos pacientes de cada tipo quedan por recoger,
+        # así como la localización de cada centro junto con su distancia manhattan al indice actual.
+        centros_cc = {}
+        cc_mas_cercano = None
+        centros_nc = {}
+        nc_mas_cercano = None
+        pacientes_c_por_recoger = 0
+        pacientes_n_por_recoger = 0
+        i = 0
+        while i < self.num_filas:
+            j = 0
+            while j < self.num_columnas:
+                if mapa_estado[i][j] == 'CC':
+                    distancia = self.distanciaMan((i,j), indice_actual)
+                    centros_cc[(i, j)] = distancia
+                    if cc_mas_cercano is None:
+                        cc_mas_cercano = (i, j)
+                    elif distancia < centros_cc[cc_mas_cercano]:
+                        cc_mas_cercano = (i, j)
+                elif mapa_estado[i][j] == 'NC':
+                    distancia = self.distanciaMan((i, j), indice_actual)
+                    centros_nc[(i, j)] = distancia
+                    if nc_mas_cercano is None:
+                        nc_mas_cercano = (i, j)
+                    elif distancia < centros_nc[nc_mas_cercano]:
+                        nc_mas_cercano = (i, j)
+                elif mapa_estado[i][j] == 'C':
+                    pacientes_c_por_recoger += 1
+                elif mapa_estado[i][j] == 'N':
+                    pacientes_n_por_recoger += 1
+                j += 1
+            i += 1
+
+        # Si no queda ningún tipo de paciente por recoger
+        if pacientes_c_por_recoger == 0 and pacientes_n_por_recoger == 0:
+            # Comprobamos si aún nos quedan pacientes por dejar (ya que puede ser que los tengamos
+            # en el bus)
+            if num_C_recogidos == 0 and num_N_recogidos == 0:
+                # Si no queda nadie en el bus, la heurística devuelve la distancia Manhattan
+                # desde el índice actual hasta el parking
+                return self.distanciaMan(indice_actual, self.pos_parking)
+
+            elif num_C_recogidos == 0 and num_N_recogidos != 0:
+                # Si únicamente nos queda por dejar a pacientes de tipo N, la heurística será
+                # la suma de la distancia Manhattan desde índice actual hasta el NC que más rente
+                # más la distancia desde ese NC hasta el parking
+                distancia_mas_rentable = -1
+                for nc in centros_nc.keys():
+                    posibilidad = self.distanciaMan(indice_actual, nc) + self.distanciaMan(nc, self.pos_parking)
+                    if distancia_mas_rentable == -1:
+                        distancia_mas_rentable = posibilidad
+                    elif posibilidad < distancia_mas_rentable:
+                        distancia_mas_rentable = posibilidad
+                return distancia_mas_rentable
+
+            elif num_C_recogidos != 0 and num_N_recogidos == 0:
+                # Si únicamente nos queda por dejar a pacientes de tipo C, la heurística será
+                # la suma de la distancia Manhattan desde índice actual hasta el CC que más rente
+                # más la distancia desde ese CC hasta el parking
+                distancia_mas_rentable = -1
+                for cc in centros_cc.keys():
+                    posibilidad = self.distanciaMan(indice_actual, cc) + self.distanciaMan(cc, self.pos_parking)
+                    if distancia_mas_rentable == -1:
+                        distancia_mas_rentable = posibilidad
+                    elif posibilidad < distancia_mas_rentable:
+                        distancia_mas_rentable = posibilidad
+                return distancia_mas_rentable
+
+            elif num_C_recogidos != 0 and num_N_recogidos != 0:
+                # Si nos quedan por dejar a pacientes de tipo C y a pacientes de tipo N,
+                # la heurística será la distancia Manhattan desde el índice actual hasta el
+                # centro CC más cercano, más la distancia desde ese CC hasta el NC QUE MÁS RENTE
+                # más la distancia desde ese NC que más rente hasta el parking
+                # (En el video que le pasé a natalia el 11.12.2023 a las 13:39 está explicado)
+
+                distancia_mas_rentable = -1
+                for cc in centros_cc.keys():
+                    for nc in centros_nc.keys():
+                        posibilidad = self.distanciaMan(indice_actual, cc) + self.distanciaMan(cc, nc) + self.distanciaMan(nc, self.pos_parking)
+                        if distancia_mas_rentable == -1:
+                            distancia_mas_rentable = posibilidad
+                        elif posibilidad < distancia_mas_rentable:
+                            distancia_mas_rentable = posibilidad
+
+                return distancia_mas_rentable
+
+        # Si solamente quedan pacientes N por recoger
+        elif pacientes_c_por_recoger == 0 and pacientes_n_por_recoger != 0:
+            # Comprobamos qué pacientes nos quedan por dejar (ya que puede ser que
+            # tengamos alguno en el bus)
+            if num_C_recogidos == 0 and num_N_recogidos == 0:
+                # Si no hay nadie en el bus, la heurística será la distancia más rentable
+                # desde nuestro índice actual hasta el NC más rentable más el número de usuarios
+                # N que quedan en el mapa
+                distancia_mas_rentable = -1
+                for nc in centros_nc.keys():
+                    posibilidad = self.distanciaMan(indice_actual, nc) + self.distanciaMan(nc, self.pos_parking)
+                    if distancia_mas_rentable == -1:
+                        distancia_mas_rentable = posibilidad
+                    elif posibilidad < distancia_mas_rentable:
+                        distancia_mas_rentable = posibilidad
+                return distancia_mas_rentable + pacientes_n_por_recoger
+
+            elif num_C_recogidos == 0 and num_N_recogidos != 0:
+                # Si en el autobus solo nos quedan pacientes de tipo N, devolveremos
+                # exactamente lo mismo que en el caso anterior
+
+                # FIXME revisar este caso porque creo que está mal.
+
+                distancia_mas_rentable = -1
+                for nc in centros_nc.keys():
+                    posibilidad = self.distanciaMan(indice_actual, nc) + self.distanciaMan(nc, self.pos_parking)
+                    if distancia_mas_rentable == -1:
+                        distancia_mas_rentable = posibilidad
+                    elif posibilidad < distancia_mas_rentable:
+                        distancia_mas_rentable = posibilidad
+                return distancia_mas_rentable + pacientes_n_por_recoger
+
+            elif num_C_recogidos != 0 and num_N_recogidos == 0:
+                # Si solo tenemos pacientes C en el bus y solo quedan por recoger
+                # Pacientes de tipo N en el mapa, primero tenemos que dejar a los C y luego ir a por los N
+                # La heurística será la ruta indice_actual -> CC -> NC -> P más rentable más
+                # la cantidad de pacientes N que queden por recoger.
+                # Al resultado final le restamos 8 (como máximo) porque en el mejor de los casos,
+                # puede haber cogido 8 pacientes N de los que quedaban restantes por el mapa en el trayecto
+                # que hace desde la posicion actual hasta NC (pasando por CC, claro)
+
+                distancia_mas_rentable = -1
+                distancia_pos_actual_cn_mas_rentable = None
+                for cc in centros_cc.keys():
+                    for nc in centros_nc.keys():
+                        distancia_pos_actual_cn = self.distanciaMan(indice_actual, cc) + self.distanciaMan(cc, nc)
+                        posibilidad = distancia_pos_actual + self.distanciaMan(nc, self.pos_parking)
+                        if distancia_mas_rentable == -1:
+                            distancia_mas_rentable = posibilidad
+                            distancia_pos_actual_cn_mas_rentable = distancia_pos_actual
+                        elif posibilidad < distancia_mas_rentable:
+                            distancia_mas_rentable = posibilidad
+                            distancia_pos_actual_cn_mas_rentable = distancia_pos_actual
+                return distancia_mas_rentable + max(pacientes_n_por_recoger - max(distancia_pos_actual_cn_mas_rentable, 8), 0)
+
+            elif num_C_recogidos != 0 and num_N_recogidos != 0: ...
+
+        # Si solamente quedan pacientes C por recoger
+        elif pacientes_c_por_recoger != 0 and pacientes_n_por_recoger == 0: ...
+
+        # Si quedan tanto C como N por recoger en el mapa
+        elif pacientes_c_por_recoger != 0 and pacientes_n_por_recoger != 0: ...
+
+
+    def entidadMasCercana(self, indice: tuple, tipo: str) -> tuple:
+        """
+        Devuelve el índice de la entidad más cercana desde "indice" hasta "tipo".
+        Por ejemplo, si indice = (1,1) y tipo = 'CC', devuelve el indice (i, j) del
+        CC más cercano a (1,1).
+        """
+        entidades = {}
+        mas_cercano = None
+        i = 0
+        while i < self.num_filas:
+            j = 0
+            while j < self.num_columnas:
+                if self.mapa[i][j] == tipo:
+                    distancia = self.distanciaMan((i, j), indice)
+                    entidades[(i, j)] = distancia
+                    if mas_cercano is None:
+                        mas_cercano = (i, j)
+                    elif distancia < entidades[mas_cercano]:
+                        mas_cercano = (i, j)
+                j += 1
+            i += 1
+
+        return mas_cercano
 
     def h3(self) -> int:
         """
