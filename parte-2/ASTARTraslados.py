@@ -620,30 +620,35 @@ class Parte2:
                 # desde nuestro índice actual hasta el NC más rentable más el número de usuarios
                 # N que quedan en el mapa
                 distancia_mas_rentable = -1
+                distancia_mas_rentable_pos_actual_nc = None
                 for nc in centros_nc.keys():
-                    posibilidad = self.distanciaMan(indice_actual, nc) + self.distanciaMan(nc, self.pos_parking)
+                    distancia_pos_actual_nc = self.distanciaMan(indice_actual, nc)
+                    posibilidad = distancia_pos_actual_nc + self.distanciaMan(nc, self.pos_parking)
                     if distancia_mas_rentable == -1:
                         distancia_mas_rentable = posibilidad
+                        distancia_mas_rentable_pos_actual_nc = distancia_pos_actual_nc
                     elif posibilidad < distancia_mas_rentable:
                         distancia_mas_rentable = posibilidad
-                return distancia_mas_rentable + pacientes_n_por_recoger
+                        distancia_mas_rentable_pos_actual_nc = distancia_pos_actual_nc
+                return distancia_mas_rentable + max(pacientes_n_por_recoger - min(distancia_mas_rentable_pos_actual_nc, 10), 0)
 
             elif num_C_recogidos == 0 and num_N_recogidos != 0:
                 # Si en el autobus solo nos quedan pacientes de tipo N, devolveremos
                 # exactamente lo mismo que en el caso anterior
 
-                # FIXME revisar este caso porque creo que está mal.
-                # Hay que contemplar que el bus pueda coger a los pacientes restantes en el trayecto de
-                # la posición actual hasta NC.
-
                 distancia_mas_rentable = -1
+                distancia_mas_rentable_pos_actual_nc = None
                 for nc in centros_nc.keys():
-                    posibilidad = self.distanciaMan(indice_actual, nc) + self.distanciaMan(nc, self.pos_parking)
+                    distancia_pos_actual_nc = self.distanciaMan(indice_actual, nc)
+                    posibilidad = distancia_pos_actual_nc + self.distanciaMan(nc, self.pos_parking)
                     if distancia_mas_rentable == -1:
                         distancia_mas_rentable = posibilidad
+                        distancia_mas_rentable_pos_actual_nc = distancia_pos_actual_nc
                     elif posibilidad < distancia_mas_rentable:
                         distancia_mas_rentable = posibilidad
-                return distancia_mas_rentable + pacientes_n_por_recoger
+                        distancia_mas_rentable_pos_actual_nc = distancia_pos_actual_nc
+                return distancia_mas_rentable + max(
+                    pacientes_n_por_recoger - min(distancia_mas_rentable_pos_actual_nc, 10 - num_N_recogidos), 0)
 
             elif num_C_recogidos != 0 and num_N_recogidos == 0:
                 # Si solo tenemos pacientes C en el bus y solo quedan por recoger
@@ -666,15 +671,86 @@ class Parte2:
                         elif posibilidad < distancia_mas_rentable:
                             distancia_mas_rentable = posibilidad
                             distancia_pos_actual_cn_mas_rentable = distancia_pos_actual
-                return distancia_mas_rentable + max(pacientes_n_por_recoger - max(distancia_pos_actual_cn_mas_rentable, 8), 0)
+                return distancia_mas_rentable + max(pacientes_n_por_recoger - min(distancia_pos_actual_cn_mas_rentable, 10 - num_C_recogidos), 0)
 
-            elif num_C_recogidos != 0 and num_N_recogidos != 0: ...
+            elif num_C_recogidos != 0 and num_N_recogidos != 0:
+                # Si tenemos pacientes C y N en el bus, primero dejamos a los C y luego a los N
+                # La heurística será la ruta indice_actual -> CC -> NC -> P más rentable más
+                # la cantidad de pacientes N que queden por recoger.
+                # Al resultado final le restamos 8 (como máximo) porque en el mejor de los casos,
+                # puede haber cogido 8 pacientes N de los que quedaban restantes por el mapa en el trayecto
+                # que hace desde la posicion actual hasta NC (pasando por CC, claro)
+
+                distancia_mas_rentable = -1
+                distancia_pos_actual_cn_mas_rentable = None
+                for cc in centros_cc.keys():
+                    for nc in centros_nc.keys():
+                        distancia_pos_actual_cn = self.distanciaMan(indice_actual, cc) + self.distanciaMan(cc, nc)
+                        posibilidad = distancia_pos_actual + self.distanciaMan(nc, self.pos_parking)
+                        if distancia_mas_rentable == -1:
+                            distancia_mas_rentable = posibilidad
+                            distancia_pos_actual_cn_mas_rentable = distancia_pos_actual
+                        elif posibilidad < distancia_mas_rentable:
+                            distancia_mas_rentable = posibilidad
+                            distancia_pos_actual_cn_mas_rentable = distancia_pos_actual
+                return distancia_mas_rentable + max(pacientes_n_por_recoger - min(distancia_pos_actual_cn_mas_rentable, 10 - num_N_recogidos), 0)
 
         # Si solamente quedan pacientes C por recoger
-        elif pacientes_c_por_recoger != 0 and pacientes_n_por_recoger == 0: ...
+        elif pacientes_c_por_recoger != 0 and pacientes_n_por_recoger == 0:
+            # Comprobamos qué pacientes nos quedan por dejar (ya que puede ser que
+            # tengamos alguno en el bus)
+            if num_C_recogidos == 0 and num_N_recogidos == 0:
+                # Si no hay nadie en el bus, la heurística será la distancia más rentable
+                # desde nuestro índice actual hasta el CC más rentable más el número de usuarios
+                # C que quedan en el mapa
+                distancia_mas_rentable = -1
+                distancia_mas_rentable_pos_actual_cc = None
+                for cc in centros_cc.keys():
+                    distancia_pos_actual_cc = self.distanciaMan(indice_actual, cc)
+                    posibilidad = distancia_pos_actual_cc + self.distanciaMan(cc, self.pos_parking)
+                    if distancia_mas_rentable == -1:
+                        distancia_mas_rentable = posibilidad
+                        distancia_mas_rentable_pos_actual_cc = distancia_pos_actual_cc
+                    elif posibilidad < distancia_mas_rentable:
+                        distancia_mas_rentable = posibilidad
+                        distancia_mas_rentable_pos_actual_cc = distancia_pos_actual_cc
+                return distancia_mas_rentable + max(pacientes_c_por_recoger - min(distancia_mas_rentable_pos_actual_cc, 2), 0)
+
+            elif num_C_recogidos == 0 and num_N_recogidos != 0:
+                # FIXME (no se cómo hacer esta)
+                ...
+
+            elif num_C_recogidos != 0 and num_N_recogidos == 0:
+                # Si en el bus solo hay pacientes C, la heurística será la distancia más rentable
+                # desde nuestro índice actual hasta el CC más rentable más el número de usuarios
+                # C que quedan en el mapa
+
+                distancia_mas_rentable = -1
+                distancia_mas_rentable_pos_actual_cc = None
+                for cc in centros_cc.keys():
+                    distancia_pos_actual_cc = self.distanciaMan(indice_actual, cc)
+                    posibilidad = distancia_pos_actual_cc + self.distanciaMan(cc, self.pos_parking)
+                    if distancia_mas_rentable == -1:
+                        distancia_mas_rentable = posibilidad
+                        distancia_mas_rentable_pos_actual_cc = distancia_pos_actual_cc
+                    elif posibilidad < distancia_mas_rentable:
+                        distancia_mas_rentable = posibilidad
+                        distancia_mas_rentable_pos_actual_cc = distancia_pos_actual_cc
+
+                return distancia_mas_rentable + max(pacientes_c_por_recoger - min(distancia_mas_rentable_pos_actual_cc, 2 - num_C_recogidos), 0)
+
+            elif num_C_recogidos != 0 and num_N_recogidos != 0:
+                """
+                Aquí tengo las mismas dudas que en el caso num_C_recogidos == 0 and num_N_recogidos != 0. ya que no sé 
+                si una vez en el CC te renta más ir a dejar a los N que tienes en el bus o ir a por los C que quedan en el mapa.
+                """
+                ...
 
         # Si quedan tanto C como N por recoger en el mapa
         elif pacientes_c_por_recoger != 0 and pacientes_n_por_recoger != 0: ...
+
+        # Si hemos llegado a esta parte del código, es que algo ha ido mal
+        raise ValueError("\n"+'\033[91m'+"Algo ha salido mal en la heurística 2." + '\033[0m')
 
 
     def entidadMasCercana(self, indice: tuple, tipo: str) -> tuple:
