@@ -346,8 +346,7 @@ class Parte1:
         """
 
         with open(self.ruta_csv , 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['N.Sol:', len(sols)])
+            file.write('"N. Sol:",' + str(len(sols)) + '\n')
         
         # Si no hay solución no añadimos ninguna configuración
         if len(sols) > 50:
@@ -386,10 +385,18 @@ class Parte1:
             estacionamiento[i - 1][j - 1] = f"{id_coche}-{tipo}{'-C' if congelador else '-X'}"
 
         # Escribir la matriz al archivo CSV
+        cadena_solucion = ''
+        for fila in estacionamiento:
+            for plaza in fila:
+                cadena_solucion += '"' + plaza + '",'
+            # Eliminamos la última coma puesta
+            if cadena_solucion[-1] == ',':
+                cadena_solucion = cadena_solucion[:-1]
+            cadena_solucion += '\n'
+
         with open(self.ruta_csv, 'a', newline='') as file:
             writer = csv.writer(file)
-            for fila in estacionamiento:
-                writer.writerow(fila)
+            file.write(cadena_solucion)
             writer.writerow([])  # Agregar dos filas vacía para separar soluciones
             writer.writerow([])  
   
