@@ -458,8 +458,8 @@ class Parte2:
         caso de que no queden pacientes por dejar.
 
         Si restantes = 0 -> h1(estado) = distanciaMan(a P)
-        Si restantes > 0 -> h1(estado) = pacientes_que_quedan_por_recoger + 
-                                         distanciaMan(a cualquier CENTRO <el más cercano>) + 
+        Si restantes > 0 -> h1(estado) = pacientes_que_quedan_por_recoger - pacientes_que_puedes_recoger_en_el_trayecto +
+                                         distanciaMan(a CENTRO <el más rentable>) +
                                          distanciaMan(a P desde ese CENTRO)
         """    
 
@@ -487,19 +487,25 @@ class Parte2:
                     j += 1
                 i+=1
 
-            min = None
-            for elem in distancia_centros.keys():
-                if min is None:
-                    min = elem
-                else:
-                    if distancia_centros[elem] < distancia_centros[min]:
-                        min = elem
-            
-            distancia_centro_mas_cercano = distancia_centros[min]
+            # Calcularemos cuál es la distancia posicion_actual -> centro -> parking más rentable
+            min_distancia_pos_centro_parking = None
+            min_distancia_pos_centro = None
+            for centro in distancia_centros.keys():
+                distancia_pos_centro = distancia_centros[centro]
+                distancia_centro_parking = self.distanciaMan(centro, self.pos_parking)
+                posibilidad = distancia_pos_centro + distancia_centro_parking
+                if min_distancia_pos_centro_parking is None:
+                    min_distancia_pos_centro_parking = posibilidad
+                    min_distancia_pos_centro = distancia_pos_centro
+                elif posibilidad < min_distancia_pos_centro_parking:
+                    min_distancia_pos_centro_parking = posibilidad
+                    min_distancia_pos_centro = distancia_pos_centro
 
-            ditancia_centro_mas_cercano_a_parking = self.distanciaMan(min, self.pos_parking)
-
-            return distancia_centro_mas_cercano + ditancia_centro_mas_cercano_a_parking + quedan_por_recoger
+            # La heurística devolverá la distancia más rentable desde la posición actual hasta el parking (pasando
+            # por el centro más rentable) más los pacientes que quedan por recoger, teniendo en cuenta que
+            # en el trayecto desde la posición actual hasta el centro más rentable se pueden recoger pacientes
+            # de ahí la parte --- quedan_por_recoger - min(min_distancia_pos_centro, 10) ---
+            return min_distancia_pos_centro_parking + max(quedan_por_recoger - min(min_distancia_pos_centro, 10), 0)
             
 
     def distanciaMan(self, indice1: tuple, indice2: tuple) -> int:
@@ -943,7 +949,8 @@ class Parte2:
                 # Ordenamos la lista por función de evaluación
                 ABIERTA.sort(key=self.f)
                 if (caca == 4):
-                    print(ABIERTA)
+                    #print(ABIERTA)
+                    ...
                 caca+=1
         
         if EXITO:
