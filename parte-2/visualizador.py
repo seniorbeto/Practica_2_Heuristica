@@ -49,7 +49,16 @@ class MapaAutobus:
         for i in range(len(self.mapa)):
             for j in range(len(self.mapa[0])):
                 if self.mapa[i][j] != 'X':
-                    self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='white', outline='black')
+                    if self.mapa[i][j] == 'CC':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#a0acde', outline='black')
+                    elif self.mapa[i][j] == 'CN':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#e0aeeb', outline='black')
+                    elif self.mapa[i][j] == 'C':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#6776b8', outline='black')
+                    elif self.mapa[i][j] == 'N':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#a266b0', outline='black')
+                    else:
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#adadad', outline='black')
                     self.canvas.create_text(j * 50 + 25, i * 50 + 25, text=self.mapa[i][j])
 
     def resetear_mapa(self):
