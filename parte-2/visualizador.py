@@ -19,6 +19,9 @@ class MapaAutobus:
         self.avanzar_btn = tk.Button(self.root, text="Avanzar", command=self.avanzar)
         self.avanzar_btn.pack(side=tk.LEFT, padx=10)
 
+        self.resetear_btn = tk.Button(self.root, text="Resetear", command=self.resetear_mapa)
+        self.resetear_btn.pack(side=tk.LEFT, padx=10)
+
         self.energia_label = tk.Label(self.root, text="Energía restante: ")
         self.energia_label.pack()
 
@@ -43,6 +46,23 @@ class MapaAutobus:
         return ruta
 
     def dibujar_mapa(self):
+        for i in range(len(self.mapa)):
+            for j in range(len(self.mapa[0])):
+                if self.mapa[i][j] != 'X':
+                    self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='white', outline='black')
+                    self.canvas.create_text(j * 50 + 25, i * 50 + 25, text=self.mapa[i][j])
+
+    def resetear_mapa(self):
+        self.canvas.delete("autobus")
+        self.current_step = 0
+        self.contador_N = 0
+        self.contador_C = 0
+        self.casillas_contadas_N = set()
+        self.casillas_contadas_C = set()
+        self.contador_N_label.config(text=f"Pacientes N en el bus: {self.contador_N}")
+        self.contador_C_label.config(text=f"Pacientes C en el bus: {self.contador_C}")
+
+        # reseteamos el canvas
         for i in range(len(self.mapa)):
             for j in range(len(self.mapa[0])):
                 if self.mapa[i][j] != 'X':
