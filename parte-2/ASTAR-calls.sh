@@ -111,6 +111,8 @@ echo "$h1"
 python3 ASTARTraslados.py ./ASTAR-tests/8_c_primero.csv 1
 echo "$h2"
 python3 ASTARTraslados.py ./ASTAR-tests/8_c_primero.csv 2
+echo "$h3"
+python3 ASTARTraslados.py ./ASTAR-tests/8_c_primero.csv 3
 
 
 # Prueba 9: Obligatoriamente se coge un N primero, y hay
@@ -163,6 +165,8 @@ echo "$h1"
 python3 ASTARTraslados.py ./ASTAR-tests/12_8_n_3_c_seguidos.csv 1
 echo "$h2"
 python3 ASTARTraslados.py ./ASTAR-tests/12_8_n_3_c_seguidos.csv 2
+echo "$h3"
+python3 ASTARTraslados.py ./ASTAR-tests/12_8_n_3_c_seguidos.csv 3
 
 # Prueba 13: Alguna celda con mucho coste, debe rodear
 msg="-- PRUEBA 13: Alguna celda con mucho coste, debe rodear --"

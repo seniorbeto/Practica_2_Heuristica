@@ -1,6 +1,6 @@
 venv
 .idea 
-/parte-1/**.csv
+parte-1/CSP-tests/*.csv
 **.output
 **.stat
 
