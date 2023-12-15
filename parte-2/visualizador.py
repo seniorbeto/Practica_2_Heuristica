@@ -2,8 +2,8 @@ import tkinter as tk
 
 class MapaAutobus:
     def __init__(self):
-        self.mapa = self.leer_mapa('parte-2/ASTAR-tests/mapa_pruebas.csv')
-        self.ruta = self.leer_ruta('parte-2/ASTAR-tests/mapa_pruebas-2.output')
+        self.mapa = self.leer_mapa('/home/beto/Documents/GitHub/Practica_2_Heuristica/parte-2/ASTAR-tests/17_normal.csv')
+        self.ruta = self.leer_ruta('/home/beto/Documents/GitHub/Practica_2_Heuristica/parte-2/ASTAR-tests/17_normal-1.output')
         self.current_step = 0
         self.contador_N = 0
         self.contador_C = 0

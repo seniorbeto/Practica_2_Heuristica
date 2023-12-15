@@ -78,10 +78,10 @@ class Parte2:
 
         # Resolvemos problema mediante A* con la heurística indicada
         if self.AStar(num_h):
-            print("\n"+'\033[32m'+"EL PROBLEMA TIENE SOLUCIÓN REPRESENTADA EN " + self.ruta_output +
-                  "\n\n" + "CUYAS ESTADÍSTICAS SE ENCUENTRAN EN " + self.ruta_stat + '\033[0m')
+            print('\033[32m'+"EL PROBLEMA TIENE SOLUCIÓN REPRESENTADA EN " + self.ruta_output +
+                  "\n\n" + "CUYAS ESTADÍSTICAS SE ENCUENTRAN EN " + self.ruta_stat + "\n" + '\033[0m')
         else:
-            print("\n"+'\033[93m'+"EL PROBLEMA NO TIENE SOLUCIÓN" + '\033[0m')
+            print('\033[93m'+"EL PROBLEMA NO TIENE SOLUCIÓN \n" + '\033[0m')
 
 
     def leer_fichero_de_entrada(self, mapa: str, num_h: int) -> list:
@@ -486,9 +486,20 @@ class Parte2:
         # distanciaMan((i,j),próximo paciente)*(1+(energía_restante/energía_máxima))+pacientes_pendientes
         else:
             # Calculamos la distancia hasta el paciente más cercano:
-            posibilidad_c = self.distanciaMan(indice_actual, self.entidadMasCercana(indice_actual, 'C'))
-            posibilidad_n = self.distanciaMan(indice_actual, self.entidadMasCercana(indice_actual, 'N'))
-            paciente_mas_cercano = min(posibilidad_c, posibilidad_n)
+            c_mas_cercano = self.entidadMasCercana(indice_actual, 'C')
+            if c_mas_cercano:
+                posibilidad_c = self.distanciaMan(indice_actual, c_mas_cercano)
+            
+            n_mas_cercano = self.entidadMasCercana(indice_actual, 'N')
+            if n_mas_cercano:
+                posibilidad_n = self.distanciaMan(indice_actual, n_mas_cercano)
+            
+            if c_mas_cercano and n_mas_cercano:
+                paciente_mas_cercano = min(posibilidad_c, posibilidad_n)
+            elif c_mas_cercano:
+                paciente_mas_cercano = posibilidad_c
+            elif n_mas_cercano:
+                paciente_mas_cercano = posibilidad_n
 
             # La heurística será la distancia al paciente más cercano ponderada por la energía restante
             # más los pacientes que quedan por dejar
@@ -668,7 +679,6 @@ class Parte2:
                 (restantes == 0):
                     CERRADA.append(estado_a_expandir)
                     EXITO = True
-                    final_contador = time.time()
 
             # Si no, antes de meter el estado en CERRADA y expandirlo, comprobamos si ya
             # se encuentra en CERRADA para evitar reexpansiones
@@ -771,6 +781,9 @@ class Parte2:
                 # Ordenamos la lista por función de evaluación
                 ABIERTA.sort(key=self.f)
         
+        final_contador = time.time()
+        tiempo_total = round(final_contador - inicio_contador, 4)
+
         if EXITO:
             # El último estado de la lista CERRADA será siempre el estado final 
             # de la solución.
@@ -791,14 +804,42 @@ class Parte2:
                         solucion.insert(0, elem)
                         break
             
-            tiempo_total = round(final_contador - inicio_contador, 4)
             self.generar_solucion_output(solucion)
             # Le pasamos la solución para obtener el coste total, le pasamos el tiempo total
             # ya calculado, la longitud del plan que es la longitud de la lista que contiene la
             # solución y el número de nodos expandidos que es la longitud de la lista CERRADA
             self.generar_estadisticas_stat(solucion, tiempo_total, len(solucion), len(CERRADA))
+        else:
+            # Si no hay solución, sacamos el fichero .output y las .stat
+            # idnicando que no tiene solución
+            self.generar_fichero_output_sin_sol()
+            self.generar_estadisticas_stat_sin_sol(tiempo_total, len(CERRADA))
 
         return EXITO
+    
+    def generar_estadisticas_stat_sin_sol(self, tiempo_total, nodos_expandidos):
+        """
+        Generamos un fichero .stat que contiene informacion relativa al proceso de 
+        búsqueda en el problema SIN solución, como el tiempo total, coste total, 
+        longitud de la solución y los nodos expandidos. 
+        """
+        tiempo = 'Tiempo total: ' + str(tiempo_total) + '\n'
+        coste = 'Coste total: inf' + '\n'
+        longitud = 'Longitud del plan: inf' + '\n'
+        expandidos = 'Nodos expandidos: ' + str(nodos_expandidos)
+
+        with open(self.ruta_stat, mode='w') as file: 
+            file.write(tiempo)
+            file.write(coste)
+            file.write(longitud)
+            file.write(expandidos)
+
+    def generar_fichero_output_sin_sol(self):
+        """
+        Generamos un fichero .output en el que indicamos que no hay solución.
+        """
+        with open(self.ruta_output, mode='w') as file: 
+            file.write('NO HAY SOLUCIÓN')
     
     def generar_solucion_output(self, solucion: list):
         """
@@ -818,7 +859,6 @@ class Parte2:
         with open(self.ruta_output, mode='w') as file: 
             file.write(cadena)
             
-    
     def generar_estadisticas_stat(self, solucion: list, tiempo_total, longitud_del_plan, nodos_expandidos):
         """
         Generamos un fichero .stat que contiene informacion relativa al proceso de búsqueda, como el
