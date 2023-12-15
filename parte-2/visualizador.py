@@ -2,8 +2,8 @@ import tkinter as tk
 
 class MapaAutobus:
     def __init__(self):
-        self.mapa = self.leer_mapa('mapa.csv')
-        self.ruta = self.leer_ruta('mapa-1.output')
+        self.mapa = self.leer_mapa('parte-2/ASTAR-tests/mapa_pruebas.csv')
+        self.ruta = self.leer_ruta('parte-2/ASTAR-tests/mapa_pruebas-2.output')
         self.current_step = 0
         self.contador_N = 0
         self.contador_C = 0
@@ -75,7 +75,16 @@ class MapaAutobus:
         for i in range(len(self.mapa)):
             for j in range(len(self.mapa[0])):
                 if self.mapa[i][j] != 'X':
-                    self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='white', outline='black')
+                    if self.mapa[i][j] == 'CC':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#a0acde', outline='black')
+                    elif self.mapa[i][j] == 'CN':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#e0aeeb', outline='black')
+                    elif self.mapa[i][j] == 'C':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#6776b8', outline='black')
+                    elif self.mapa[i][j] == 'N':
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#a266b0', outline='black')
+                    else:
+                        self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill='#adadad', outline='black')
                     self.canvas.create_text(j * 50 + 25, i * 50 + 25, text=self.mapa[i][j])
 
     def actualizar_energia(self):
@@ -84,15 +93,16 @@ class MapaAutobus:
 
     def actualizar_contadores(self):
         tipo_casilla = self.ruta[self.current_step][1]
-        if tipo_casilla == 'N' and self.ruta[self.current_step][0] not in self.casillas_contadas_N:
+        if tipo_casilla == 'N' and self.ruta[self.current_step][0] not in self.casillas_contadas_N \
+            and self.contador_C == 0 and (self.contador_C + self.contador_N) < 10:
             self.contador_N += 1
             self.casillas_contadas_N.add(self.ruta[self.current_step][0])
             self.contador_N_label.config(text=f"Pacientes N en el bus: {self.contador_N}")
-        elif tipo_casilla == 'CN':
+        elif tipo_casilla == 'CN' and self.contador_C == 0:
             self.contador_N = 0
             self.contador_N_label.config(text=f"Pacientes N en el bus: {self.contador_N}")
-
-        if tipo_casilla == 'C' and self.ruta[self.current_step][0] not in self.casillas_contadas_C:
+        if tipo_casilla == 'C' and self.ruta[self.current_step][0] not in self.casillas_contadas_C \
+            and self.contador_N <= 8 and self.contador_C < 2:
             self.contador_C += 1
             self.casillas_contadas_C.add(self.ruta[self.current_step][0])
             self.contador_C_label.config(text=f"Pacientes C en el bus: {self.contador_C}")
