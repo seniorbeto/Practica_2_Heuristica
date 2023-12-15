@@ -1,9 +1,31 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#   Autores:
+#       Alberto Penas Díaz
+#       Natalia Rodríguez Navarro
+#
+
+"""
+INSTRUCCIONES DE USO:
+    1.- Instalar el paquete tkinter (si no se tiene ya)
+    2.- Especificar las rutas de el mapa de entrada (RUTA_MAPA_ENTRADA) y de la salida
+        .output correspondiente a ese mapa (RUTA_OUTPUT). ¡Las rutas deben usar el caracter /!
+    3.- Ejecutar este módulo y ya se podrá visualizar el mapa: Con "Avanzar" vas visualizando paso 
+        a paso y debajo pone el número de pacientes en el bus y la energía restante.
+"""
+
+# Rutas
+RUTA_MAPA_ENTRADA = None
+RUTA_OUTPUT = None
+
+
 import tkinter as tk
 
 class MapaAutobus:
     def __init__(self):
-        self.mapa = self.leer_mapa('/home/beto/Documents/GitHub/Practica_2_Heuristica/parte-2/ASTAR-tests/17_normal.csv')
-        self.ruta = self.leer_ruta('/home/beto/Documents/GitHub/Practica_2_Heuristica/parte-2/ASTAR-tests/17_normal-1.output')
+        self.mapa = self.leer_mapa(RUTA_MAPA_ENTRADA)
+        self.ruta = self.leer_ruta(RUTA_OUTPUT)
         self.current_step = 0
         self.contador_N = 0
         self.contador_C = 0
