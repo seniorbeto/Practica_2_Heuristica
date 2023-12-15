@@ -461,7 +461,7 @@ class Parte2:
         Además, agregar el número de pacientes pendientes mejora la eficiencia al dar prioridad a las paradas 
         con más pacientes por recoger o dejar (=pacientes_pendientes).
 
-        h2 = distanciaMan((i,j),próximo paciente)*(1+(energía_restante/energía_máxima))+pacientes_pendientes
+        h1 = distanciaMan((i,j),próximo paciente)*(1+(energía_restante/energía_máxima))+pacientes_pendientes
         """
         indice_actual = estado[0]
         energia_actual = estado[1]
@@ -534,8 +534,8 @@ class Parte2:
         debería hacer un viaje para recoger a los restantes.
 
 
-        Si restantes = 0 -> h1(estado) = distanciaMan(a P)
-        Si restantes > 0 -> h1(estado) = distanciaMan(a CENTRO <el más rentable>) +
+        Si restantes = 0 -> h2(estado) = distanciaMan(a P)
+        Si restantes > 0 -> h2(estado) = distanciaMan(a CENTRO <el más rentable>) +
                                          distanciaMan(a P desde ese CENTRO) + 
                                          (pacientes_que_quedan_por_recoger - 
                                          pacientes_que_puedes_recoger_en_el_trayecto_al_centro)                          
